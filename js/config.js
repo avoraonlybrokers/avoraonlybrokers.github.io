@@ -22,7 +22,7 @@ const AVORA_CONFIG = {
   // secret — knowing it does not let anyone log in without the
   // real password — it just lets the hidden login form ask for
   // a password only, matching the original design.
-  ADMIN_EMAIL: "aliirishanov9@gmail.com",
+  ADMIN_EMAIL: "rthdtest44@gmail.com",
 
   // Optional: paste a Google Maps embed API key here if you have one.
   GOOGLE_MAPS_API_KEY: "",

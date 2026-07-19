@@ -50,6 +50,84 @@ function avoraDeveloperCardHTML(dev, count) {
     </a>`;
 }
 
+const GUIDE_COUNTRY_ICON = {
+  uae: "landmark",
+  bali: "palm-tree",
+  thailand: "waves",
+};
+
+function avoraGuideCoverHTML(guide) {
+  if (guide.cover_image_url) {
+    return `<img src="${guide.cover_image_url}" alt="${avoraEscapeHtml(avoraPick(guide, "title") || guide.title_ru)}" loading="lazy" />`;
+  }
+  const icon = GUIDE_COUNTRY_ICON[guide.country] || "book-open";
+  return `<div class="guide-cover-fallback country-${guide.country || "uae"}"><i data-lucide="${icon}" width="34" height="34"></i></div>`;
+}
+
+function avoraGuideExcerpt(text, maxLen) {
+  if (!text) return "";
+  const plain = text.replace(/^##.*$/gm, "").replace(/\*\*/g, "").replace(/^- /gm, "").replace(/\n+/g, " ").trim();
+  return plain.length > maxLen ? plain.slice(0, maxLen).trim() + "…" : plain;
+}
+
+function avoraGuideCardHTML(guide) {
+  const title = avoraPick(guide, "title") || guide.title_ru;
+  const subtitle = avoraPick(guide, "subtitle") || guide.subtitle_ru;
+  const content = avoraPick(guide, "content") || guide.content_ru;
+  const dateLabel = guide.published_date
+    ? new Date(guide.published_date).toLocaleDateString(avoraGetLocale() === "ru" ? "ru-RU" : "en-US", { year: "numeric", month: "long", day: "numeric" })
+    : "";
+
+  return `
+    <a href="guide.html?slug=${encodeURIComponent(guide.slug)}" class="guide-card reveal">
+      <div class="guide-cover">
+        ${avoraGuideCoverHTML(guide)}
+        <span class="guide-cover-tag">${avoraEscapeHtml((guide.country || "").toUpperCase())}</span>
+      </div>
+      <div class="guide-body">
+        <p class="guide-date">${avoraEscapeHtml(dateLabel)}</p>
+        <h3 class="guide-title font-display">${avoraEscapeHtml(title)}</h3>
+        <p class="guide-excerpt">${avoraEscapeHtml(subtitle || avoraGuideExcerpt(content, 110))}</p>
+        <span class="guide-readmore"><span data-i18n="guides_read_more"></span><i data-lucide="arrow-up-right" width="13" height="13"></i></span>
+      </div>
+    </a>`;
+}
+
+// Very small "lite markdown" renderer used for guide content:
+// "## " starts a subheading, "- " starts a list item, "**bold**"
+// renders as <strong>, blank lines separate paragraphs.
+function avoraInlineFormat(str) {
+  let escaped = avoraEscapeHtml(str);
+  escaped = escaped.replace(/\*\*(.+?)\*\*/g, "<strong>$1</strong>");
+  return escaped;
+}
+
+function avoraRenderLiteMarkdown(container, text) {
+  if (!text) { container.innerHTML = ""; return; }
+  const lines = text.split("\n");
+  let html = "";
+  let inList = false;
+  for (const rawLine of lines) {
+    const line = rawLine.trim();
+    if (line === "") {
+      if (inList) { html += "</ul>"; inList = false; }
+      continue;
+    }
+    if (line.startsWith("## ")) {
+      if (inList) { html += "</ul>"; inList = false; }
+      html += `<h3>${avoraInlineFormat(line.slice(3))}</h3>`;
+    } else if (line.startsWith("- ")) {
+      if (!inList) { html += "<ul>"; inList = true; }
+      html += `<li>${avoraInlineFormat(line.slice(2))}</li>`;
+    } else {
+      if (inList) { html += "</ul>"; inList = false; }
+      html += `<p>${avoraInlineFormat(line)}</p>`;
+    }
+  }
+  if (inList) html += "</ul>";
+  container.innerHTML = html;
+}
+
 // ============================================================
 // Reusable render helpers shared by complex.js and apartment.js
 // ============================================================

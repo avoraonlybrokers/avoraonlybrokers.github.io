@@ -10,6 +10,7 @@ async function avoraLoadHero() {
 }
 
 async function avoraLoadProjects() {
+  const grid = document.getElementById("projects-grid");
   const empty = document.getElementById("projects-empty");
   const { data, error } = await supabaseClient
     .from("complexes")
@@ -23,6 +24,28 @@ async function avoraLoadProjects() {
   }
 
   grid.innerHTML = data.map(avoraProjectCardHTML).join("");
+  avoraApplyTranslations();
+  avoraRenderIcons();
+  avoraObserveNewReveals(grid);
+}
+
+async function avoraLoadGuidesTeaser() {
+  const grid = document.getElementById("guides-grid");
+  const empty = document.getElementById("guides-empty");
+  const { data, error } = await supabaseClient
+    .from("guides")
+    .select("*")
+    .eq("status", "published")
+    .order("sort_order", { ascending: true })
+    .limit(3);
+
+  if (error || !data || data.length === 0) {
+    document.getElementById("guides-teaser")?.classList.add("hidden");
+    return;
+  }
+
+  empty.classList.add("hidden");
+  grid.innerHTML = data.map(avoraGuideCardHTML).join("");
   avoraApplyTranslations();
   avoraRenderIcons();
   avoraObserveNewReveals(grid);
@@ -53,9 +76,11 @@ document.addEventListener("DOMContentLoaded", () => {
   avoraInitReveal();
   avoraLoadHero();
   avoraLoadProjects();
+  avoraLoadGuidesTeaser();
   avoraLoadDevelopersTeaser();
   document.addEventListener("avora:locale-changed", () => {
     avoraLoadProjects();
+    avoraLoadGuidesTeaser();
     avoraLoadDevelopersTeaser();
   });
 });

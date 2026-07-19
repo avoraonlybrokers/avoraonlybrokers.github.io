@@ -1,0 +1,55 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<title>AVORA</title>
+<link rel="preconnect" href="https://fonts.googleapis.com" />
+<link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:wght@400;500;600&family=Manrope:wght@300;400;500;600;700&display=swap" rel="stylesheet" />
+<link rel="stylesheet" href="css/style.css" />
+<script src="https://unpkg.com/lucide@latest/dist/umd/lucide.js" defer></script>
+</head>
+<body>
+
+<header id="avora-header"></header>
+
+<main>
+  <div class="carousel hidden" id="apartment-carousel"></div>
+
+  <div class="container" style="padding-top:32px;padding-bottom:80px;max-width:760px;">
+    <a href="#" id="back-link" style="display:inline-flex;align-items:center;gap:6px;font-size:14px;color:rgba(247,247,245,0.6)">
+      <i data-lucide="chevron-left" width="15" height="15"></i><span data-i18n="back_to_apartments"></span>
+    </a>
+
+    <div id="apartment-summary" class="reveal" style="margin-top:20px"></div>
+
+    <section class="block-item hidden" id="block-description">
+      <h3 style="font-size:24px" data-i18n="description"></h3>
+      <p id="description-text" style="margin-top:16px;line-height:1.7;color:rgba(247,247,245,0.8);white-space:pre-line"></p>
+    </section>
+
+    <section class="block-item hidden" id="block-floorplan">
+      <h3 style="font-size:24px" data-i18n="floor_plan"></h3>
+      <div id="floorplan-image" style="margin-top:16px;border:1px solid var(--line);border-radius:12px;overflow:hidden"></div>
+    </section>
+
+    <section class="block-item hidden" id="block-specs">
+      <h3 style="font-size:24px" data-i18n="specs"></h3>
+      <dl id="specs-list" style="margin-top:16px;border:1px solid var(--line);border-radius:12px;overflow:hidden"></dl>
+    </section>
+
+    <section class="block-item" id="block-lead"></section>
+  </div>
+</main>
+
+<footer id="avora-footer"></footer>
+
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2/dist/umd/supabase.min.js"></script>
+<script src="js/config.js"></script>
+<script src="js/supabaseClient.js"></script>
+<script src="js/i18n.js"></script>
+<script src="js/shared.js"></script>
+<script src="js/components.js"></script>
+<script src="js/apartment.js"></script>
+</body>
+</html>

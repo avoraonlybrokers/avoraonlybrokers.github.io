@@ -62,7 +62,7 @@ async function avoraLoadApartment() {
   const description = avoraPick(apartment, "description");
   if (description) {
     document.getElementById("block-description").classList.remove("hidden");
-    document.getElementById("description-text").textContent = description;
+    avoraRenderLiteMarkdown(document.getElementById("description-text"), description);
   }
 
   if (apartment.floor_plan_url) {

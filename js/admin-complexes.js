@@ -1,17 +1,27 @@
 const AMENITY_LABELS_RU = {
   pool: "Бассейн",
-  spa: "SPA",
+  spa: "Спа и велнес",
   gym: "Фитнес-зал",
-  security: "Охрана",
-  park: "Парк",
+  security: "Круглосуточная охрана",
+  concierge: "Консьерж-сервис",
+  park: "Частный парк",
   cafe: "Кафе",
-  parking: "Паркинг",
-  kids: "Детская зона",
+  restaurant: "Ресторан",
+  parking: "Частная парковка",
+  kids: "Детская игровая зона",
   wifi: "Wi-Fi",
   lobby: "Лобби",
+  bbq: "Зона барбекю",
+  smart_home: "Система Умный дом",
+  yoga: "Йога пространство",
+  surf: "Серф-волна",
+  coworking: "Коворкинг",
+  art_bridge: "Арт-мост",
+  event_space: "Event-пространство",
+  cinema: "Кинозал",
+  rooftop: "Терраса на крыше",
+  private_beach: "Доступ к частному пляжу",
 };
-
-// Простая транслитерация RU → латиница используется из translate.js (avoraTransliterate)
 
 (async function () {
   const user = await avoraRequireAdmin();
@@ -22,10 +32,6 @@ const AMENITY_LABELS_RU = {
   let editingId = null;
   let slugTouchedManually = false;
   let selectedAmenities = [];
-  let developers = [];
-
-  const { data: devData } = await supabaseClient.from("developers").select("*").order("sort_order");
-  developers = devData || [];
 
   content.innerHTML = `
     <h1 class="font-display" style="font-size:32px">Комплексы</h1>
@@ -35,22 +41,18 @@ const AMENITY_LABELS_RU = {
     </p>
 
     <form id="c-form" class="admin-form" style="margin-top:24px">
-      <input class="form-field full" id="f-slug" placeholder="Адрес страницы (slug), например: solvyn-city — заполнится сам из названия" />
+      <input class="form-field full" id="f-slug" placeholder="Адрес страницы (slug) — заполнится сам из названия" />
 
       <input class="form-field full" id="f-name-ru" placeholder="Название комплекса" required />
       <input class="form-field" id="f-country" placeholder="Страна" required />
       <input class="form-field" id="f-city" placeholder="Город" required />
-      <input class="form-field" type="number" id="f-price" placeholder="Цена от, $" />
-      <select class="form-field" id="f-developer">
-        <option value="">Без застройщика</option>
-        ${developers.map((d) => `<option value="${d.id}">${avoraEscapeHtml(d.name_ru || d.name_en)}</option>`).join("")}
-      </select>
+      <input class="form-field full" type="number" id="f-price" placeholder="Цена от, $" />
 
-      <textarea class="form-field full" id="f-desc-ru" rows="4" placeholder="О проекте — подробное описание"></textarea>
-      <textarea class="form-field" id="f-format-ru" rows="2" placeholder="Формат проекта (необязательно)"></textarea>
-      <textarea class="form-field" id="f-payment-ru" rows="2" placeholder="Схема рассрочки (необязательно)"></textarea>
+      <textarea class="form-field full" id="f-desc-ru" rows="5" placeholder="О проекте — подробное описание"></textarea>
+      <textarea class="form-field" id="f-format-ru" rows="3" placeholder="Формат проекта (необязательно)"></textarea>
+      <textarea class="form-field" id="f-payment-ru" rows="3" placeholder="Схема рассрочки (необязательно)"></textarea>
       <input class="form-field" id="f-handover" placeholder="Срок сдачи, например: Q4 2027" />
-      <input class="form-field" id="f-yield-ru" placeholder="Доходность, например: 8-10% годовых" />
+      <input class="form-field" id="f-yield-ru" placeholder="Доходность, например: 14% годовых" />
       <textarea class="form-field full" id="f-extra-ru" rows="2" placeholder="Дополнительная информация (необязательно)"></textarea>
 
       <div class="full">
@@ -64,18 +66,29 @@ const AMENITY_LABELS_RU = {
         <input type="file" id="cover-upload-input" accept="image/*" class="hidden" />
       </div>
 
-      <input class="form-field" type="number" step="any" id="f-lat" placeholder="Широта (Latitude)" />
-      <input class="form-field" type="number" step="any" id="f-lng" placeholder="Долгота (Longitude)" />
-      <input class="form-field full" id="f-maps-url" placeholder="Ссылка на Google Maps (необязательно)" />
+      <input class="form-field full" id="f-map-address" placeholder="Адрес на карте (текстом) — например: 554G+28, Kutuh, Bali, Индонезия" />
       <input class="form-field full" id="f-lead-url" placeholder="Ссылка «Отправить заявку застройщику» (куда ведёт кнопка)" />
 
+      <details class="full" style="border:1px solid var(--line);border-radius:10px;padding:12px 16px">
+        <summary style="cursor:pointer;font-size:13px;color:rgba(247,247,245,0.6)">Точные координаты (необязательно, для карты)</summary>
+        <div style="margin-top:12px;display:grid;grid-template-columns:1fr 1fr;gap:10px">
+          <input class="form-field" type="number" step="any" id="f-lat" placeholder="Широта (Latitude)" style="margin-bottom:0" />
+          <input class="form-field" type="number" step="any" id="f-lng" placeholder="Долгота (Longitude)" style="margin-bottom:0" />
+          <input class="form-field" style="grid-column:1/-1;margin-bottom:0" id="f-maps-url" placeholder="Готовая ссылка на Google Maps (необязательно)" />
+        </div>
+      </details>
+
       <div class="full">
-        <p style="font-size:12px;color:rgba(247,247,245,0.5);margin-bottom:8px">Блок «Проверено Onlybrokers»</p>
-        <div style="display:flex;flex-wrap:wrap;gap:16px;font-size:14px">
-          <label style="display:flex;align-items:center;gap:6px"><input type="checkbox" id="f-trust-history" /> История застройщика</label>
-          <label style="display:flex;align-items:center;gap:6px"><input type="checkbox" id="f-trust-legal" /> Юридическая проверка</label>
-          <label style="display:flex;align-items:center;gap:6px"><input type="checkbox" id="f-trust-construction" /> Ход строительства</label>
-          <label style="display:flex;align-items:center;gap:6px"><input type="checkbox" id="f-trust-contract" /> Анализ контракта</label>
+        <p style="font-size:12px;color:rgba(247,247,245,0.5);margin-bottom:8px">Блок «Проверено Onlybrokers» — включите то, что подтверждено, и коротко опишите</p>
+        <div style="display:grid;gap:8px">
+          <label style="display:flex;align-items:center;gap:8px;font-size:13px"><input type="checkbox" id="f-trust-history" /> История застройщика</label>
+          <input class="form-field" id="f-trust-history-text" placeholder="Например: Финансовая стабильность." style="margin-bottom:0" />
+          <label style="display:flex;align-items:center;gap:8px;font-size:13px;margin-top:8px"><input type="checkbox" id="f-trust-legal" /> Юридическая проверка</label>
+          <input class="form-field" id="f-trust-legal-text" placeholder="Например: Земля и эскроу проверены." style="margin-bottom:0" />
+          <label style="display:flex;align-items:center;gap:8px;font-size:13px;margin-top:8px"><input type="checkbox" id="f-trust-construction" /> Ход строительства</label>
+          <input class="form-field" id="f-trust-construction-text" placeholder="Например: Темпы строительства подтверждены." style="margin-bottom:0" />
+          <label style="display:flex;align-items:center;gap:8px;font-size:13px;margin-top:8px"><input type="checkbox" id="f-trust-contract" /> Анализ контракта</label>
+          <input class="form-field" id="f-trust-contract-text" placeholder="Например: Условия SPA проверены." style="margin-bottom:0" />
         </div>
       </div>
 
@@ -108,7 +121,7 @@ const AMENITY_LABELS_RU = {
 
     <div id="media-section" class="hidden" style="margin-bottom:32px">
       <h2 class="font-display" style="font-size:22px;margin-bottom:4px">Фото и видео этого комплекса</h2>
-      <p style="font-size:13px;color:rgba(247,247,245,0.5);margin-bottom:12px">Показываются в галерее на странице комплекса.</p>
+      <p style="font-size:13px;color:rgba(247,247,245,0.5);margin-bottom:12px">Показываются в галерее на странице комплекса. До 15 фото и 8 видео.</p>
       <div id="media-widget"></div>
     </div>
 
@@ -166,7 +179,6 @@ const AMENITY_LABELS_RU = {
     document.getElementById("f-country").value = c.country || "";
     document.getElementById("f-city").value = c.city || "";
     document.getElementById("f-price").value = c.price_from_usd ?? "";
-    document.getElementById("f-developer").value = c.developer_id || "";
     document.getElementById("f-desc-ru").value = c.description_ru || "";
     document.getElementById("f-desc-en").value = c.description_en || "";
     document.getElementById("f-format-ru").value = c.format_ru || "";
@@ -179,14 +191,19 @@ const AMENITY_LABELS_RU = {
     document.getElementById("f-extra-ru").value = c.extra_info_ru || "";
     document.getElementById("f-extra-en").value = c.extra_info_en || "";
     document.getElementById("f-cover").value = c.cover_image_url || "";
+    document.getElementById("f-map-address").value = c.map_address || "";
     document.getElementById("f-lat").value = c.latitude ?? "";
     document.getElementById("f-lng").value = c.longitude ?? "";
     document.getElementById("f-maps-url").value = c.google_maps_url || "";
     document.getElementById("f-lead-url").value = c.developer_lead_url || "";
     document.getElementById("f-trust-history").checked = !!c.trust_history_enabled;
+    document.getElementById("f-trust-history-text").value = c.trust_history_text || "";
     document.getElementById("f-trust-legal").checked = !!c.trust_legal_enabled;
+    document.getElementById("f-trust-legal-text").value = c.trust_legal_text || "";
     document.getElementById("f-trust-construction").checked = !!c.trust_construction_enabled;
+    document.getElementById("f-trust-construction-text").value = c.trust_construction_text || "";
     document.getElementById("f-trust-contract").checked = !!c.trust_contract_enabled;
+    document.getElementById("f-trust-contract-text").value = c.trust_contract_text || "";
     document.getElementById("f-status").value = c.status || "draft";
     document.getElementById("f-sort").value = c.sort_order || 0;
 
@@ -227,7 +244,6 @@ const AMENITY_LABELS_RU = {
       country: document.getElementById("f-country").value,
       city: document.getElementById("f-city").value,
       price_from_usd: Number(document.getElementById("f-price").value) || null,
-      developer_id: document.getElementById("f-developer").value || null,
       description_ru: document.getElementById("f-desc-ru").value || null,
       description_en: document.getElementById("f-desc-en").value || null,
       format_ru: document.getElementById("f-format-ru").value || null,
@@ -241,14 +257,19 @@ const AMENITY_LABELS_RU = {
       extra_info_en: document.getElementById("f-extra-en").value || null,
       amenities: selectedAmenities,
       cover_image_url: document.getElementById("f-cover").value || null,
+      map_address: document.getElementById("f-map-address").value || null,
       latitude: document.getElementById("f-lat").value ? Number(document.getElementById("f-lat").value) : null,
       longitude: document.getElementById("f-lng").value ? Number(document.getElementById("f-lng").value) : null,
       google_maps_url: document.getElementById("f-maps-url").value || null,
       developer_lead_url: document.getElementById("f-lead-url").value || null,
       trust_history_enabled: document.getElementById("f-trust-history").checked,
+      trust_history_text: document.getElementById("f-trust-history-text").value || null,
       trust_legal_enabled: document.getElementById("f-trust-legal").checked,
+      trust_legal_text: document.getElementById("f-trust-legal-text").value || null,
       trust_construction_enabled: document.getElementById("f-trust-construction").checked,
+      trust_construction_text: document.getElementById("f-trust-construction-text").value || null,
       trust_contract_enabled: document.getElementById("f-trust-contract").checked,
+      trust_contract_text: document.getElementById("f-trust-contract-text").value || null,
       status: document.getElementById("f-status").value,
       sort_order: Number(document.getElementById("f-sort").value) || 0,
     };
@@ -264,17 +285,12 @@ const AMENITY_LABELS_RU = {
 
     if (result.error) { alert(result.error.message); return; }
 
-    // Остаёмся в форме редактирования только что созданного/сохранённого
-    // комплекса — чтобы сразу же можно было загрузить фото и видео.
     fillForm(result.data);
     await loadList();
   });
 
   async function loadList() {
-    const { data } = await supabaseClient
-      .from("complexes")
-      .select("*, developer:developers(name_ru, name_en)")
-      .order("sort_order");
+    const { data } = await supabaseClient.from("complexes").select("*").order("sort_order");
     const listEl = document.getElementById("c-list");
     const STATUS_RU = { draft: "черновик", published: "опубликован", archived: "архив" };
     listEl.innerHTML = (data || [])
@@ -283,7 +299,7 @@ const AMENITY_LABELS_RU = {
       <div class="admin-list-row">
         <div>
           <p>${avoraEscapeHtml(c.name_ru)} <span class="status-pill">${STATUS_RU[c.status] || c.status}</span></p>
-          <p class="meta">${avoraEscapeHtml(c.city)}, ${avoraEscapeHtml(c.country)} · /${avoraEscapeHtml(c.slug)}${c.developer ? " · " + avoraEscapeHtml(c.developer.name_ru || c.developer.name_en) : ""}</p>
+          <p class="meta">${avoraEscapeHtml(c.city)}, ${avoraEscapeHtml(c.country)} · /${avoraEscapeHtml(c.slug)}</p>
         </div>
         <div class="admin-actions">
           <a href="admin-apartments.html?complex_id=${c.id}&name=${encodeURIComponent(c.name_ru)}" class="icon-btn" style="font-size:12px;color:var(--gold-soft)">Апартаменты</a>

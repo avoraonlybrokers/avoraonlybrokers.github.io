@@ -22,7 +22,6 @@ function avoraMountHeader() {
     <a href="index.html" class="brand-logo">AVORA</a>
     <nav class="header-nav">
       <a href="index.html#projects" data-i18n="nav_projects"></a>
-      <a href="developers.html" data-i18n="nav_developers"></a>
       <a href="guides.html" class="nav-guides-link" data-i18n="nav_guides"></a>
     </nav>
     <div class="locale-switch">

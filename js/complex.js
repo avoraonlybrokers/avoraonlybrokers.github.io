@@ -5,7 +5,7 @@ async function avoraLoadComplex() {
 
   const { data: complex } = await supabaseClient
     .from("complexes")
-    .select("*, developer:developers(*)")
+    .select("*")
     .eq("slug", slug)
     .eq("status", "published")
     .single();
@@ -69,7 +69,6 @@ function renderSummary(complex) {
   const name = avoraPick(complex, "name") || complex.name_en;
   const priceFrom = avoraFormatUsd(complex.price_from_usd);
   const yieldText = avoraPick(complex, "yield");
-  const developerName = complex.developer ? (avoraPick(complex.developer, "name") || complex.developer.name_en) : null;
 
   document.getElementById("complex-summary").innerHTML = `
     <div style="display:flex;align-items:center;gap:6px;font-size:14px;color:rgba(247,247,245,0.6)">
@@ -81,10 +80,6 @@ function renderSummary(complex) {
       ${complex.handover_date ? `<div style="display:flex;align-items:center;gap:6px;color:rgba(247,247,245,0.7)"><i data-lucide="calendar-clock" width="14" height="14"></i><span data-i18n="handover"></span>: ${avoraEscapeHtml(complex.handover_date)}</div>` : ""}
       ${yieldText ? `<div style="display:flex;align-items:center;gap:6px;color:rgba(247,247,245,0.7)"><i data-lucide="trending-up" width="14" height="14"></i><span data-i18n="yield"></span>: ${avoraEscapeHtml(yieldText)}</div>` : ""}
     </div>
-    ${developerName ? `
-    <a href="developer.html?id=${complex.developer.id}" style="margin-top:20px;display:inline-flex;align-items:center;gap:6px;border:1px solid var(--line);border-radius:999px;padding:8px 16px;font-size:12px;color:rgba(247,247,245,0.7)">
-      <span data-i18n="developer_label"></span>: ${avoraEscapeHtml(developerName)} <i data-lucide="arrow-up-right" width="13" height="13"></i>
-    </a>` : ""}
   `;
 }
 

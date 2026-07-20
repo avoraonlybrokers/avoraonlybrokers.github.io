@@ -23,6 +23,7 @@ async function avoraLoadProjects() {
     return;
   }
 
+  empty.classList.add("hidden");
   grid.innerHTML = data.map(avoraProjectCardHTML).join("");
   avoraApplyTranslations();
   avoraRenderIcons();
@@ -51,36 +52,13 @@ async function avoraLoadGuidesTeaser() {
   avoraObserveNewReveals(grid);
 }
 
-async function avoraLoadDevelopersTeaser() {
-  const grid = document.getElementById("developers-grid");
-  const [{ data: developers }, { data: counts }] = await Promise.all([
-    supabaseClient.from("developers").select("*").eq("is_hidden", false).order("sort_order", { ascending: true }).limit(6),
-    supabaseClient.from("developer_project_counts").select("*"),
-  ]);
-
-  if (!developers || developers.length === 0) {
-    document.getElementById("developers-teaser").classList.add("hidden");
-    return;
-  }
-
-  const countMap = {};
-  (counts || []).forEach((c) => (countMap[c.developer_id] = c.project_count));
-
-  grid.innerHTML = developers.map((d) => avoraDeveloperCardHTML(d, countMap[d.id] || 0)).join("");
-  avoraApplyTranslations();
-  avoraRenderIcons();
-  avoraObserveNewReveals(grid);
-}
-
 document.addEventListener("DOMContentLoaded", () => {
   avoraInitReveal();
   avoraLoadHero();
   avoraLoadProjects();
   avoraLoadGuidesTeaser();
-  avoraLoadDevelopersTeaser();
   document.addEventListener("avora:locale-changed", () => {
     avoraLoadProjects();
     avoraLoadGuidesTeaser();
-    avoraLoadDevelopersTeaser();
   });
 });

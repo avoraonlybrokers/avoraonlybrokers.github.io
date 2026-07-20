@@ -25,31 +25,6 @@ function avoraProjectCardHTML(complex) {
     </a>`;
 }
 
-function avoraDeveloperCountLabel(n) {
-  const locale = avoraGetLocale();
-  if (locale === "ru") {
-    if (n === 0) return "0 проектов";
-    if (n === 1) return "1 проект";
-    if (n < 5) return `${n} проекта`;
-    return `${n} проектов`;
-  }
-  return `${n} ${n === 1 ? "project" : "projects"}`;
-}
-
-function avoraDeveloperCardHTML(dev, count) {
-  const name = avoraPick(dev, "name") || dev.name_en;
-  return `
-    <a href="developer.html?id=${dev.id}" class="developer-card reveal">
-      <div class="developer-logo-circle">
-        ${dev.logo_url ? `<img src="${dev.logo_url}" alt="${avoraEscapeHtml(name)}" />` : `<i data-lucide="building-2" width="22" height="22" style="color:rgba(247,247,245,0.5)"></i>`}
-      </div>
-      <div>
-        <p class="developer-name font-display">${avoraEscapeHtml(name)}</p>
-        <p class="developer-count">${avoraDeveloperCountLabel(count)}</p>
-      </div>
-    </a>`;
-}
-
 const GUIDE_COUNTRY_ICON = {
   uae: "landmark",
   bali: "palm-tree",
@@ -134,15 +109,27 @@ function avoraRenderLiteMarkdown(container, text) {
 
 const AMENITY_MAP = {
   pool: { icon: "waves", ru: "Бассейн", en: "Pool" },
-  spa: { icon: "sparkles", ru: "SPA", en: "Spa" },
-  gym: { icon: "dumbbell", ru: "Фитнес", en: "Fitness" },
-  security: { icon: "shield-check", ru: "Охрана", en: "Security" },
-  park: { icon: "trees", ru: "Парк", en: "Park" },
+  spa: { icon: "sparkles", ru: "Спа и велнес", en: "Spa & Wellness" },
+  gym: { icon: "dumbbell", ru: "Фитнес-зал", en: "Fitness" },
+  security: { icon: "shield-check", ru: "Круглосуточная охрана", en: "24/7 Security" },
+  concierge: { icon: "concierge-bell", ru: "Консьерж-сервис", en: "Concierge" },
+  park: { icon: "trees", ru: "Частный парк", en: "Private Park" },
   cafe: { icon: "coffee", ru: "Кафе", en: "Cafe" },
-  parking: { icon: "car-front", ru: "Паркинг", en: "Parking" },
-  kids: { icon: "baby", ru: "Детская зона", en: "Kids area" },
+  restaurant: { icon: "utensils-crossed", ru: "Ресторан", en: "Restaurant" },
+  parking: { icon: "car-front", ru: "Частная парковка", en: "Private Parking" },
+  kids: { icon: "baby", ru: "Детская игровая зона", en: "Kids Area" },
   wifi: { icon: "wifi", ru: "Wi-Fi", en: "Wi-Fi" },
   lobby: { icon: "building", ru: "Лобби", en: "Lobby" },
+  bbq: { icon: "flame", ru: "Зона барбекю", en: "BBQ Area" },
+  smart_home: { icon: "cpu", ru: "Система Умный дом", en: "Smart Home" },
+  yoga: { icon: "flower-2", ru: "Йога пространство", en: "Yoga Space" },
+  surf: { icon: "wind", ru: "Серф-волна", en: "Surf Wave" },
+  coworking: { icon: "laptop", ru: "Коворкинг", en: "Coworking" },
+  art_bridge: { icon: "palette", ru: "Арт-мост", en: "Art Bridge" },
+  event_space: { icon: "calendar", ru: "Event-пространство", en: "Event Space" },
+  cinema: { icon: "clapperboard", ru: "Кинозал", en: "Cinema Room" },
+  rooftop: { icon: "sunrise", ru: "Терраса на крыше", en: "Rooftop Terrace" },
+  private_beach: { icon: "umbrella", ru: "Доступ к частному пляжу", en: "Private Beach Access" },
 };
 
 function avoraRenderAmenities(container, amenities) {
@@ -215,10 +202,10 @@ function avoraRenderCarousel(container, items, title) {
 
 function avoraRenderTrustBlock(container, complex) {
   const items = [
-    { enabled: complex.trust_history_enabled, icon: "scroll-text", key: "trust_history" },
-    { enabled: complex.trust_legal_enabled, icon: "file-search", key: "trust_legal" },
-    { enabled: complex.trust_construction_enabled, icon: "hard-hat", key: "trust_construction" },
-    { enabled: complex.trust_contract_enabled, icon: "badge-check", key: "trust_contract" },
+    { enabled: complex.trust_history_enabled, icon: "scroll-text", key: "trust_history", text: complex.trust_history_text },
+    { enabled: complex.trust_legal_enabled, icon: "file-search", key: "trust_legal", text: complex.trust_legal_text },
+    { enabled: complex.trust_construction_enabled, icon: "hard-hat", key: "trust_construction", text: complex.trust_construction_text },
+    { enabled: complex.trust_contract_enabled, icon: "badge-check", key: "trust_contract", text: complex.trust_contract_text },
   ].filter((i) => i.enabled);
 
   if (items.length === 0) { container.classList.add("hidden"); return; }
@@ -226,22 +213,36 @@ function avoraRenderTrustBlock(container, complex) {
   container.innerHTML = `
     <div class="trust-head"><i data-lucide="badge-check" width="18" height="18"></i><h3 style="font-size:20px" data-i18n="trust_title"></h3></div>
     <div class="trust-items">
-      ${items.map((i) => `<div class="trust-item"><i data-lucide="${i.icon}" width="20" height="20"></i><span data-i18n="${i.key}"></span></div>`).join("")}
+      ${items.map((i) => `<div class="trust-item"><i data-lucide="${i.icon}" width="20" height="20"></i><span data-i18n="${i.key}"></span>${i.text ? `<p class="trust-item-text">${avoraEscapeHtml(i.text)}</p>` : ""}</div>`).join("")}
     </div>`;
   avoraApplyTranslations();
   avoraRenderIcons();
 }
 
 function avoraRenderMap(container, complex) {
-  if (complex.latitude == null || complex.longitude == null) { container.classList.add("hidden"); return; }
+  const hasCoords = complex.latitude != null && complex.longitude != null;
+  const hasAddress = !!(complex.map_address && complex.map_address.trim());
+
+  if (!hasCoords && !hasAddress && !complex.google_maps_url) {
+    container.classList.add("hidden");
+    return;
+  }
+
+  const query = hasCoords ? `${complex.latitude},${complex.longitude}` : hasAddress ? complex.map_address : null;
   const apiKey = AVORA_CONFIG.GOOGLE_MAPS_API_KEY;
-  const embedSrc = apiKey
-    ? `https://www.google.com/maps/embed/v1/view?key=${apiKey}&center=${complex.latitude},${complex.longitude}&zoom=14`
-    : `https://maps.google.com/maps?q=${complex.latitude},${complex.longitude}&z=14&output=embed`;
-  const externalUrl = complex.google_maps_url || `https://www.google.com/maps?q=${complex.latitude},${complex.longitude}`;
+
+  let embedHTML = "";
+  if (query) {
+    const embedSrc = apiKey
+      ? `https://www.google.com/maps/embed/v1/place?key=${apiKey}&q=${encodeURIComponent(query)}`
+      : `https://maps.google.com/maps?q=${encodeURIComponent(query)}&z=14&output=embed`;
+    embedHTML = `<div class="map-embed"><iframe src="${embedSrc}" loading="lazy" referrerpolicy="no-referrer-when-downgrade"></iframe></div>`;
+  }
+
+  const externalUrl = complex.google_maps_url || `https://www.google.com/maps?q=${encodeURIComponent(query)}`;
 
   container.innerHTML = `
-    <div class="map-embed"><iframe src="${embedSrc}" loading="lazy" referrerpolicy="no-referrer-when-downgrade"></iframe></div>
+    ${embedHTML}
     <a class="map-link" href="${externalUrl}" target="_blank" rel="noopener noreferrer">
       <span data-i18n="open_in_maps"></span><i data-lucide="external-link" width="14" height="14"></i>
     </a>`;

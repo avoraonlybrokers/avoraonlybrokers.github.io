@@ -1,7 +1,6 @@
 const ADMIN_NAV = [
   { href: "admin.html", label: "Дашборд", icon: "layout-dashboard" },
   { href: "admin-complexes.html", label: "Комплексы", icon: "building" },
-  { href: "admin-developers.html", label: "Застройщики", icon: "users" },
   { href: "admin-guides.html", label: "Гайды", icon: "book-open" },
   { href: "admin-settings.html", label: "Настройки и соцсети", icon: "settings" },
 ];

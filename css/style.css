@@ -324,24 +324,6 @@ section.block:first-child { border-top: none; }
 .card-title { font-size: 24px; }
 .card-price { margin-top: 4px; font-size: 14px; color: var(--gold-soft); }
 
-/* ---------------- Developer grid ---------------- */
-.developer-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 20px; }
-@media (min-width: 640px) { .developer-grid { grid-template-columns: 1fr 1fr 1fr; } }
-.developer-card {
-  display: flex; flex-direction: column; align-items: center; text-align: center; gap: 16px;
-  border: 1px solid var(--line); border-radius: 18px; padding: 32px 16px;
-  transition: border-color 0.3s var(--ease), transform 0.2s var(--ease);
-}
-.developer-card:hover { border-color: rgba(198,161,91,0.4); }
-.developer-card:active { transform: scale(0.97); }
-.developer-logo-circle {
-  width: 56px; height: 56px; border-radius: 999px; display: flex; align-items: center; justify-content: center;
-  border: 1px solid var(--line); background: rgba(8,9,11,0.4); overflow: hidden;
-}
-.developer-logo-circle img { width: 40px; height: 40px; object-fit: contain; }
-.developer-name { font-size: 18px; }
-.developer-count { margin-top: 4px; font-size: 12px; color: rgba(247,247,245,0.5); }
-
 /* ---------------- Amenities ---------------- */
 .amenity-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 16px; margin-top: 20px; }
 @media (min-width: 640px) { .amenity-grid { grid-template-columns: 1fr 1fr 1fr; } }
@@ -377,6 +359,7 @@ section.block:first-child { border-top: none; }
 .trust-item { display: flex; flex-direction: column; align-items: center; gap: 8px; text-align: center; }
 .trust-item svg { color: var(--gold-soft); }
 .trust-item span { font-size: 12px; color: rgba(247,247,245,0.75); }
+.trust-item-text { font-size: 11px; color: rgba(247,247,245,0.5); margin-top: 2px; line-height: 1.4; }
 
 /* ---------------- Map ---------------- */
 .map-embed { border: 1px solid var(--line); border-radius: 18px; overflow: hidden; }

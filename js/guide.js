@@ -25,10 +25,13 @@ async function avoraLoadGuide() {
   document.title = `${guide.title_en || guide.title_ru} — AVORA`;
 
   const heroEl = document.getElementById("guide-hero");
+  heroEl.classList.remove("hidden");
   if (guide.cover_image_url) {
-    heroEl.classList.remove("hidden");
     heroEl.innerHTML = `<img src="${guide.cover_image_url}" alt="${avoraEscapeHtml(title)}" style="width:100%;height:100%;object-fit:cover" />`;
+  } else {
+    heroEl.innerHTML = avoraGuideCoverHTML(guide);
   }
+  heroEl.insertAdjacentHTML("beforeend", `<div class="guide-hero-scrim"></div>`);
 
   document.getElementById("guide-header").innerHTML = `
     <p class="guide-date">${avoraEscapeHtml(dateLabel)}</p>

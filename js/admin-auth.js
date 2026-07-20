@@ -1,10 +1,9 @@
 const ADMIN_NAV = [
-  { href: "admin.html", label: "Dashboard", icon: "layout-dashboard" },
-  { href: "admin-complexes.html", label: "Complexes", icon: "building" },
-  { href: "admin-developers.html", label: "Developers", icon: "users" },
-  { href: "admin-guides.html", label: "Guides", icon: "book-open" },
-  { href: "admin-leads.html", label: "Leads", icon: "share-2" },
-  { href: "admin-settings.html", label: "Settings & Social", icon: "settings" },
+  { href: "admin.html", label: "Дашборд", icon: "layout-dashboard" },
+  { href: "admin-complexes.html", label: "Комплексы", icon: "building" },
+  { href: "admin-developers.html", label: "Застройщики", icon: "users" },
+  { href: "admin-guides.html", label: "Гайды", icon: "book-open" },
+  { href: "admin-settings.html", label: "Настройки и соцсети", icon: "settings" },
 ];
 
 // Resolves once the auth state is known. Redirects away if the
@@ -36,10 +35,10 @@ function avoraRenderAdminShell(activeHref) {
         </a>`
       ).join("")}
       <a href="index.html" class="admin-nav-link" style="margin-top:auto">
-        <i data-lucide="home" width="16" height="16"></i>View site
+        <i data-lucide="home" width="16" height="16"></i>Открыть сайт
       </a>
       <button id="admin-logout-btn" class="admin-nav-link" style="border:none;background:none;text-align:left;color:rgba(247,247,245,0.5)">
-        <i data-lucide="log-out" width="16" height="16"></i>Log out
+        <i data-lucide="log-out" width="16" height="16"></i>Выйти
       </button>
     </aside>
     <main class="admin-main" id="admin-content"></main>
@@ -76,15 +75,15 @@ function avoraWireUploadButton(buttonId, inputId, targetInputId, folder, onDone)
   input.addEventListener("change", async () => {
     const file = input.files?.[0];
     if (!file) return;
-    button.textContent = "Uploading…";
+    button.textContent = "Загрузка…";
     try {
       const url = await avoraUploadFile(file, folder);
       document.getElementById(targetInputId).value = url;
       if (onDone) onDone(url);
     } catch (err) {
-      alert("Upload failed: " + err.message);
+      alert("Не удалось загрузить файл: " + err.message);
     } finally {
-      button.textContent = "Upload";
+      button.textContent = "Загрузить";
       input.value = "";
     }
   });

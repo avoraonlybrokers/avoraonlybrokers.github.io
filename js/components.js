@@ -249,44 +249,15 @@ function avoraRenderMap(container, complex) {
   avoraRenderIcons();
 }
 
-function avoraRenderLeadForm(container, { complexId, apartmentId, developerLeadUrl }) {
+function avoraRenderLeadForm(container, { developerLeadUrl }) {
+  if (!developerLeadUrl) {
+    container.classList.add("hidden");
+    return;
+  }
   container.innerHTML = `
-    <form id="avora-lead-form">
-      <input class="form-field" id="lead-name" required data-i18n-placeholder="form_name" />
-      <input class="form-field" id="lead-phone" required data-i18n-placeholder="form_phone" />
-      <input class="form-field" type="email" id="lead-email" data-i18n-placeholder="form_email" />
-      <textarea class="form-field" id="lead-message" rows="3" data-i18n-placeholder="form_message"></textarea>
-      <button type="submit" class="btn-gold" id="lead-submit-btn">
-        <span data-i18n="send_lead"></span> <i data-lucide="send" width="15" height="15"></i>
-      </button>
-    </form>`;
+    <a href="${developerLeadUrl}" target="_blank" rel="noopener noreferrer" class="btn-gold" style="display:inline-flex;align-items:center;justify-content:center;gap:8px;text-decoration:none">
+      <span data-i18n="send_lead"></span> <i data-lucide="send" width="15" height="15"></i>
+    </a>`;
   avoraApplyTranslations();
   avoraRenderIcons();
-
-  const form = container.querySelector("#avora-lead-form");
-  form.addEventListener("submit", async (e) => {
-    e.preventDefault();
-    const btn = container.querySelector("#lead-submit-btn");
-    btn.disabled = true;
-    const payload = {
-      name: container.querySelector("#lead-name").value,
-      phone: container.querySelector("#lead-phone").value,
-      email: container.querySelector("#lead-email").value || null,
-      message: container.querySelector("#lead-message").value || null,
-      complex_id: complexId || null,
-      apartment_id: apartmentId || null,
-      status: "new",
-    };
-    const { error } = await supabaseClient.from("leads").insert(payload);
-    if (!error) {
-      container.innerHTML = `<div style="display:flex;align-items:center;gap:8px;border:1px solid rgba(198,161,91,0.4);background:rgba(198,161,91,0.1);color:var(--gold-soft);padding:16px 20px;border-radius:12px;">
-        <i data-lucide="check" width="16" height="16"></i><span data-i18n="form_sent"></span>
-      </div>`;
-      avoraApplyTranslations();
-      avoraRenderIcons();
-      if (developerLeadUrl) window.open(developerLeadUrl, "_blank", "noopener,noreferrer");
-    } else {
-      btn.disabled = false;
-    }
-  });
 }

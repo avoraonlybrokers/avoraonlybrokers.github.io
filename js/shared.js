@@ -192,8 +192,19 @@ function avoraEscapeHtml(str) {
     .replaceAll('"', "&quot;");
 }
 
+// Считает визит один раз за сессию браузера (чтобы переходы между
+// страницами одного и того же человека не накручивали счётчик).
+// На admin-страницах не считаем.
+function avoraTrackVisit() {
+  if (document.getElementById("admin-shell")) return;
+  if (sessionStorage.getItem("avora_visit_logged")) return;
+  sessionStorage.setItem("avora_visit_logged", "1");
+  supabaseClient.from("site_visits").insert({ page: window.location.pathname }).then(() => {});
+}
+
 document.addEventListener("DOMContentLoaded", () => {
   document.documentElement.lang = avoraGetLocale();
   avoraMountHeader();
   avoraMountFooter();
+  avoraTrackVisit();
 });

@@ -7,25 +7,25 @@ const SOCIAL_PLATFORMS = ["instagram", "x", "facebook", "tiktok"];
   const content = document.getElementById("admin-content");
 
   content.innerHTML = `
-    <h1 class="font-display" style="font-size:32px">Settings</h1>
-    <p style="margin-top:8px;font-size:14px;color:rgba(247,247,245,0.5)">Logo, hero video, contacts, and social links shown across the site.</p>
+    <h1 class="font-display" style="font-size:32px">Настройки</h1>
+    <p style="margin-top:8px;font-size:14px;color:rgba(247,247,245,0.5)">Логотип, фоновое видео, контакты и соцсети, показанные на всём сайте.</p>
 
     <form id="settings-form" class="admin-form" style="grid-template-columns:1fr;max-width:560px;margin-top:24px">
-      <input class="form-field" id="f-logo" placeholder="Logo URL" />
+      <input class="form-field" id="f-logo" placeholder="Логотип — ссылка" />
       <div style="display:flex;gap:8px;align-items:center">
-        <input class="form-field" id="f-hero-video" placeholder="Hero video URL" style="margin-bottom:0" />
-        <button type="button" id="video-upload-btn" class="btn-outline-gold" style="white-space:nowrap;padding:12px 16px">Upload</button>
+        <input class="form-field" id="f-hero-video" placeholder="Фоновое видео на главной — ссылка" style="margin-bottom:0" />
+        <button type="button" id="video-upload-btn" class="btn-outline-gold" style="white-space:nowrap;padding:12px 16px">Загрузить</button>
         <input type="file" id="video-upload-input" accept="video/*" class="hidden" />
       </div>
-      <input class="form-field" id="f-whatsapp" placeholder="WhatsApp number" />
-      <input class="form-field" id="f-telegram" placeholder="Telegram link" />
+      <input class="form-field" id="f-whatsapp" placeholder="Номер WhatsApp" />
+      <input class="form-field" id="f-telegram" placeholder="Ссылка на Telegram" />
       <input class="form-field" id="f-email" placeholder="Email" />
-      <input class="form-field" id="f-phone" placeholder="Phone" />
-      <button type="submit" class="btn-gold" style="width:auto;padding:12px 28px">Save settings</button>
+      <input class="form-field" id="f-phone" placeholder="Телефон" />
+      <button type="submit" class="btn-gold" style="width:auto;padding:12px 28px">Сохранить настройки</button>
       <p id="save-msg" style="font-size:12px;color:var(--gold-soft)"></p>
     </form>
 
-    <h2 class="font-display" style="font-size:24px;margin-top:40px">Social Media</h2>
+    <h2 class="font-display" style="font-size:24px;margin-top:40px">Социальные сети</h2>
     <div id="social-rows" style="margin-top:16px;max-width:640px"></div>
   `;
 
@@ -53,7 +53,7 @@ const SOCIAL_PLATFORMS = ["instagram", "x", "facebook", "tiktok"];
     };
     await supabaseClient.from("site_settings").update(payload).eq("id", 1);
     const msg = document.getElementById("save-msg");
-    msg.textContent = "Settings saved.";
+    msg.textContent = "Настройки сохранены.";
     setTimeout(() => (msg.textContent = ""), 2000);
   });
 
@@ -67,9 +67,9 @@ const SOCIAL_PLATFORMS = ["instagram", "x", "facebook", "tiktok"];
       <span style="width:80px;text-transform:capitalize;font-size:14px">${platform}</span>
       <input class="form-field" style="margin-bottom:0;flex:1" data-platform="${platform}" placeholder="https://…" value="${avoraEscapeHtml(socialMap[platform]?.url || "")}" />
       <label style="display:flex;align-items:center;gap:6px;font-size:12px;color:rgba(247,247,245,0.6)">
-        <input type="checkbox" data-enabled="${platform}" ${socialMap[platform]?.is_enabled ? "checked" : ""} /> Enabled
+        <input type="checkbox" data-enabled="${platform}" ${socialMap[platform]?.is_enabled ? "checked" : ""} /> Включено
       </label>
-      <button type="button" data-save="${platform}" class="btn-outline-gold" style="width:auto;padding:8px 16px;font-size:12px">Save</button>
+      <button type="button" data-save="${platform}" class="btn-outline-gold" style="width:auto;padding:8px 16px;font-size:12px">Сохранить</button>
     </div>`
   ).join("");
 

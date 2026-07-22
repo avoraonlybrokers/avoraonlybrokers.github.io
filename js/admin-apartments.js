@@ -32,6 +32,9 @@
       <input class="form-field" type="number" id="f-price" placeholder="Цена, $" />
       <textarea class="form-field full" id="f-desc-ru" rows="3" placeholder="Описание (необязательно)"></textarea>
 
+      <!-- НОВОЕ ПОЛЕ ДЛЯ ВНЕШНЕЙ ССЫЛКИ -->
+      <input class="form-field full" id="f-external-url" placeholder="Внешняя ссылка на страницу апартамента (если есть)" />
+
       <div class="full" style="display:flex;gap:8px;align-items:center">
         <input class="form-field" id="f-floorplan" placeholder="Планировка — ссылка на изображение" style="margin-bottom:0" />
         <button type="button" id="fp-upload-btn" class="btn-outline-gold" style="white-space:nowrap;padding:12px 16px">Загрузить</button>
@@ -144,6 +147,10 @@
     document.getElementById("f-price").value = apt.price_usd ?? "";
     document.getElementById("f-desc-ru").value = apt.description_ru || "";
     document.getElementById("f-desc-en").value = apt.description_en || "";
+    
+    // НОВАЯ СТРОКА
+    document.getElementById("f-external-url").value = apt.external_url || "";
+    
     document.getElementById("f-floorplan").value = apt.floor_plan_url || "";
     document.getElementById("f-status").value = apt.status || "draft";
     document.getElementById("f-sort").value = apt.sort_order || 0;
@@ -187,6 +194,10 @@
       price_usd: document.getElementById("f-price").value ? Number(document.getElementById("f-price").value) : null,
       description_ru: document.getElementById("f-desc-ru").value || null,
       description_en: document.getElementById("f-desc-en").value || null,
+      
+      // НОВАЯ СТРОКА
+      external_url: document.getElementById("f-external-url").value || null,
+      
       floor_plan_url: document.getElementById("f-floorplan").value || null,
       extra_specs: extraSpecs.filter((s) => s.label_ru),
       status: document.getElementById("f-status").value,

@@ -1,9 +1,11 @@
 const ADMIN_NAV = [
-  { href: "admin.html", label: "Дашборд", icon: "layout-dashboard" },
-  { href: "admin-complexes.html", label: "Комплексы", icon: "building" },
-  { href: "admin-guides.html", label: "Гайды", icon: "book-open" },
-  { href: "admin-reviews.html", label: "Отзывы", icon: "star" },
-  { href: "admin-settings.html", label: "Настройки и соцсети", icon: "settings" },
+  { href: "admin.html", label: "Dashboard", icon: "layout-dashboard" },
+  { href: "admin-complexes.html", label: "Complexes", icon: "building" },
+  { href: "admin-developers.html", label: "Developers", icon: "users" },
+  { href: "admin-leads.html", label: "Leads", icon: "share-2" },
+  { href: "admin-guides.html", label: "Guides", icon: "book-open" },
+  { href: "admin-reviews.html", label: "Reviews", icon: "star" },
+  { href: "admin-settings.html", label: "Settings & Social", icon: "settings" }, // ← ЭТА СТРОКА
 ];
 
 // Resolves once the auth state is known. Redirects away if the

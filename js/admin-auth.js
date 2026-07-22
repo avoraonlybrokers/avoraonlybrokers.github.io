@@ -2,6 +2,7 @@ const ADMIN_NAV = [
   { href: "admin.html", label: "Дашборд", icon: "layout-dashboard" },
   { href: "admin-complexes.html", label: "Комплексы", icon: "building" },
   { href: "admin-guides.html", label: "Гайды", icon: "book-open" },
+  { href: "admin-reviews.html", label: "Отзывы", icon: "star" },
   { href: "admin-settings.html", label: "Настройки и соцсети", icon: "settings" },
 ];
 
@@ -41,6 +42,7 @@ function avoraRenderAdminShell(activeHref) {
       </button>
     </aside>
     <main class="admin-main" id="admin-content"></main>
+    <div id="visit-counter" class="visit-counter"></div>
   `;
   shell.classList.add("admin-shell");
 
@@ -50,6 +52,38 @@ function avoraRenderAdminShell(activeHref) {
   });
 
   avoraRenderIcons();
+  avoraMountVisitCounter();
+}
+
+async function avoraMountVisitCounter() {
+  const el = document.getElementById("visit-counter");
+  if (!el) return;
+
+  el.innerHTML = `<button id="visit-counter-btn" class="visit-counter-btn"><i data-lucide="users" width="14" height="14"></i><span id="visit-counter-num">…</span></button>
+    <div id="visit-counter-panel" class="visit-counter-panel hidden">
+      <div class="visit-counter-row"><span>Сегодня</span><strong id="visit-today">…</strong></div>
+      <div class="visit-counter-row"><span>За всё время</span><strong id="visit-all">…</strong></div>
+    </div>`;
+  avoraRenderIcons();
+
+  const startOfToday = new Date();
+  startOfToday.setHours(0, 0, 0, 0);
+
+  const [{ count: allCount }, { count: todayCount }] = await Promise.all([
+    supabaseClient.from("site_visits").select("id", { count: "exact", head: true }),
+    supabaseClient.from("site_visits").select("id", { count: "exact", head: true }).gte("created_at", startOfToday.toISOString()),
+  ]);
+
+  document.getElementById("visit-counter-num").textContent = allCount ?? 0;
+  document.getElementById("visit-today").textContent = todayCount ?? 0;
+  document.getElementById("visit-all").textContent = allCount ?? 0;
+
+  const btn = document.getElementById("visit-counter-btn");
+  const panel = document.getElementById("visit-counter-panel");
+  btn.addEventListener("click", () => panel.classList.toggle("hidden"));
+  document.addEventListener("click", (e) => {
+    if (!el.contains(e.target)) panel.classList.add("hidden");
+  });
 }
 
 // Uploads a file to Supabase Storage and returns its public URL.

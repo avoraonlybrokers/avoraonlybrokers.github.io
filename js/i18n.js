@@ -42,6 +42,16 @@ const AVORA_I18N = {
     guides_view_all: "Смотреть все гайды",
     guides_empty: "Скоро здесь появятся новые гайды.",
     back_to_guides: "Ко всем гайдам",
+    reviews_title: "Отзывы",
+    reviews_subtitle: "Что говорят те, кто уже работал с нами",
+    reviews_empty: "Пока нет отзывов — будьте первым.",
+    leave_review: "Оставить отзыв",
+    review_form_title: "Ваш отзыв",
+    review_name_placeholder: "Ваше имя",
+    review_rating_label: "Оценка",
+    review_text_placeholder: "Расскажите о своём опыте",
+    review_submit: "Отправить отзыв",
+    review_thanks: "Спасибо! Ваш отзыв отправлен и появится после проверки.",
     official_site: "Официальный сайт",
     footer_social: "Social Media",
     footer_contacts: "Контакты",
@@ -100,6 +110,16 @@ const AVORA_I18N = {
     guides_view_all: "View all guides",
     guides_empty: "New guides are on their way.",
     back_to_guides: "Back to all guides",
+    reviews_title: "Reviews",
+    reviews_subtitle: "What our clients say about working with us",
+    reviews_empty: "No reviews yet — be the first.",
+    leave_review: "Leave a Review",
+    review_form_title: "Your Review",
+    review_name_placeholder: "Your name",
+    review_rating_label: "Rating",
+    review_text_placeholder: "Tell us about your experience",
+    review_submit: "Submit Review",
+    review_thanks: "Thank you! Your review was submitted and will appear after moderation.",
     official_site: "Official website",
     footer_social: "Social Media",
     footer_contacts: "Contacts",
@@ -124,8 +144,10 @@ function avoraGetLocale() {
 function avoraSetLocale(locale) {
   localStorage.setItem("avora_locale", locale);
   document.documentElement.lang = locale;
+  document.body.classList.add("locale-pulse");
   avoraApplyTranslations();
   document.dispatchEvent(new CustomEvent("avora:locale-changed", { detail: { locale } }));
+  setTimeout(() => document.body.classList.remove("locale-pulse"), 380);
 }
 
 function avoraT(key) {

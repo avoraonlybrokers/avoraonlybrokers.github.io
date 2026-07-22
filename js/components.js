@@ -141,11 +141,12 @@ function avoraRenderAmenities(container, amenities) {
     <div class="amenity-grid">
       ${known.map((key) => {
         const a = AMENITY_MAP[key];
-        return `<div class="amenity-item"><i data-lucide="${a.icon}" width="18" height="18"></i><span>${locale === "ru" ? a.ru : a.en}</span></div>`;
+        return `<div class="amenity-item reveal"><i data-lucide="${a.icon}" width="18" height="18"></i><span>${locale === "ru" ? a.ru : a.en}</span></div>`;
       }).join("")}
     </div>`;
   avoraApplyTranslations();
   avoraRenderIcons();
+  avoraObserveNewReveals(container);
 }
 
 // items: [{ kind: 'image'|'video', url }]
@@ -213,10 +214,11 @@ function avoraRenderTrustBlock(container, complex) {
   container.innerHTML = `
     <div class="trust-head"><i data-lucide="badge-check" width="18" height="18"></i><h3 style="font-size:20px" data-i18n="trust_title"></h3></div>
     <div class="trust-items">
-      ${items.map((i) => `<div class="trust-item"><i data-lucide="${i.icon}" width="20" height="20"></i><span data-i18n="${i.key}"></span>${i.text ? `<p class="trust-item-text">${avoraEscapeHtml(i.text)}</p>` : ""}</div>`).join("")}
+      ${items.map((i) => `<div class="trust-item reveal"><i data-lucide="${i.icon}" width="20" height="20"></i><span data-i18n="${i.key}"></span>${i.text ? `<p class="trust-item-text">${avoraEscapeHtml(i.text)}</p>` : ""}</div>`).join("")}
     </div>`;
   avoraApplyTranslations();
   avoraRenderIcons();
+  avoraObserveNewReveals(container);
 }
 
 function avoraRenderMap(container, complex) {
@@ -261,4 +263,118 @@ function avoraRenderLeadForm(container, { developerLeadUrl }) {
     </a>`;
   avoraApplyTranslations();
   avoraRenderIcons();
+}
+
+// ============================================================
+// Reviews
+// ============================================================
+
+function avoraStarRowHTML(rating, size) {
+  const s = size || 15;
+  let html = '<span class="star-row">';
+  for (let i = 1; i <= 5; i++) {
+    html += `<i data-lucide="star" width="${s}" height="${s}" ${i > rating ? 'class="empty"' : ""} fill="${i <= rating ? "currentColor" : "none"}"></i>`;
+  }
+  return html + "</span>";
+}
+
+function avoraReviewCardHTML(review) {
+  return `
+    <div class="review-card reveal">
+      ${avoraStarRowHTML(review.rating)}
+      <p class="review-card-text">${avoraEscapeHtml(review.review_text)}</p>
+      <p class="review-card-name">${avoraEscapeHtml(review.author_name)}</p>
+    </div>`;
+}
+
+async function avoraLoadReviews(gridId, emptyId, limit) {
+  const grid = document.getElementById(gridId);
+  const empty = document.getElementById(emptyId);
+  if (!grid) return;
+
+  let query = supabaseClient.from("reviews").select("*").eq("status", "published").order("created_at", { ascending: false });
+  if (limit) query = query.limit(limit);
+  const { data, error } = await query;
+
+  if (error || !data || data.length === 0) {
+    if (empty) empty.classList.remove("hidden");
+    return;
+  }
+  if (empty) empty.classList.add("hidden");
+  grid.innerHTML = data.map(avoraReviewCardHTML).join("");
+  avoraRenderIcons();
+  avoraObserveNewReveals(grid);
+}
+
+function avoraWireReviewModal() {
+  const trigger = document.getElementById("avora-review-trigger");
+  const overlay = document.getElementById("avora-review-overlay");
+  if (!trigger || !overlay) return;
+
+  let selectedRating = 0;
+
+  function renderStarPicker() {
+    const picker = document.getElementById("review-star-picker");
+    picker.innerHTML = [1, 2, 3, 4, 5]
+      .map((n) => `<button type="button" data-star="${n}" class="${n <= selectedRating ? "active" : ""}"><i data-lucide="star" width="26" height="26" fill="${n <= selectedRating ? "currentColor" : "none"}"></i></button>`)
+      .join("");
+    avoraRenderIcons();
+    picker.querySelectorAll("[data-star]").forEach((btn) => {
+      btn.addEventListener("click", () => {
+        selectedRating = Number(btn.dataset.star);
+        renderStarPicker();
+      });
+    });
+  }
+
+  trigger.addEventListener("click", () => {
+    overlay.classList.add("open");
+    selectedRating = 0;
+    renderStarPicker();
+  });
+
+  overlay.querySelector(".modal-close").addEventListener("click", () => overlay.classList.remove("open"));
+  overlay.addEventListener("click", (e) => { if (e.target === overlay) overlay.classList.remove("open"); });
+
+  const form = document.getElementById("review-form");
+  form.addEventListener("submit", async (e) => {
+    e.preventDefault();
+    const errorEl = document.getElementById("review-form-error");
+    errorEl.classList.add("hidden");
+
+    if (selectedRating === 0) {
+      errorEl.textContent = avoraGetLocale() === "ru" ? "Пожалуйста, выберите оценку." : "Please choose a rating.";
+      errorEl.classList.remove("hidden");
+      return;
+    }
+
+    const submitBtn = document.getElementById("review-submit-btn");
+    submitBtn.disabled = true;
+
+    const { error } = await supabaseClient.from("reviews").insert({
+      author_name: document.getElementById("review-name").value,
+      rating: selectedRating,
+      review_text: document.getElementById("review-text").value,
+      status: "pending",
+    });
+
+    submitBtn.disabled = false;
+
+    if (error) {
+      errorEl.textContent = error.message;
+      errorEl.classList.remove("hidden");
+      return;
+    }
+
+    document.getElementById("review-form-wrap").classList.add("hidden");
+    document.getElementById("review-success-wrap").classList.remove("hidden");
+    setTimeout(() => {
+      overlay.classList.remove("open");
+      form.reset();
+      selectedRating = 0;
+      renderStarPicker();
+      document.getElementById("review-form-wrap").classList.remove("hidden");
+      document.getElementById("review-success-wrap").classList.add("hidden");
+    }, 1800);
+  });
 }

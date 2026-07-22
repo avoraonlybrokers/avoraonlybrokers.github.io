@@ -151,6 +151,27 @@ function avoraWireAdminModal() {
 }
 
 // ---------------- Scroll reveal ----------------
+// Разбивает текст на отдельные буквы для покаскадной анимации
+// появления (используется для крупных заголовков — AVORA в hero
+// и т.д.). Пробелы сохраняются как есть.
+function avoraSplitLetters(el, text) {
+  if (!el) return;
+  el.innerHTML = "";
+  [...text].forEach((ch, i) => {
+    const span = document.createElement("span");
+    span.className = "letter";
+    span.style.setProperty("--li", i);
+    span.textContent = ch === " " ? "\u00A0" : ch;
+    el.appendChild(span);
+  });
+}
+
+function avoraApplyRevealStagger(elements) {
+  elements.forEach((el, i) => {
+    el.style.setProperty("--d", `${Math.min(i * 0.08, 0.56)}s`);
+  });
+}
+
 function avoraInitReveal() {
   const observer = new IntersectionObserver(
     (entries) => {
@@ -163,7 +184,9 @@ function avoraInitReveal() {
     },
     { threshold: 0.15, rootMargin: "-40px" }
   );
-  document.querySelectorAll(".reveal").forEach((el) => observer.observe(el));
+  const els = document.querySelectorAll(".reveal");
+  avoraApplyRevealStagger(els);
+  els.forEach((el) => observer.observe(el));
 }
 
 // Re-run reveal wiring after dynamically injected content.
@@ -179,7 +202,9 @@ function avoraObserveNewReveals(container) {
     },
     { threshold: 0.15, rootMargin: "-40px" }
   );
-  container.querySelectorAll(".reveal").forEach((el) => observer.observe(el));
+  const els = container.querySelectorAll(".reveal");
+  avoraApplyRevealStagger(els);
+  els.forEach((el) => observer.observe(el));
 }
 
 function avoraEscapeHtml(str) {

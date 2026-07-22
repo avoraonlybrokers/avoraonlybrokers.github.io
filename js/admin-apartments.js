@@ -173,8 +173,8 @@
       document.getElementById("translate-status")
     );
     for (const spec of extraSpecs) {
-      if (spec.label_ru && !spec.label_en) spec.label_en = await avoraTranslateRuToEn(spec.label_ru);
-      if (spec.value_ru && !spec.value_en) spec.value_en = await avoraTranslateRuToEn(spec.value_ru);
+      if (spec.label_ru) spec.label_en = (await avoraTranslateRuToEn(spec.label_ru)).text;
+      if (spec.value_ru) spec.value_en = (await avoraTranslateRuToEn(spec.value_ru)).text;
     }
 
     const payload = {

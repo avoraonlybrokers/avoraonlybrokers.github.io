@@ -52,11 +52,35 @@ async function avoraLoadGuidesTeaser() {
   avoraObserveNewReveals(grid);
 }
 
+function avoraRunPreloader() {
+  const el = document.getElementById("avora-preloader");
+  if (!el) return;
+
+  if (sessionStorage.getItem("avora_intro_shown")) {
+    el.classList.add("instant");
+    return;
+  }
+  sessionStorage.setItem("avora_intro_shown", "1");
+
+  avoraSplitLetters(document.getElementById("avora-preloader-letters"), "AVORA");
+  document.body.style.overflow = "hidden";
+
+  setTimeout(() => {
+    el.classList.add("hide");
+    document.body.style.overflow = "";
+    setTimeout(() => el.remove(), 900);
+  }, 1500);
+}
+
 document.addEventListener("DOMContentLoaded", () => {
+  avoraRunPreloader();
+  avoraSplitLetters(document.getElementById("hero-title-letters"), "AVORA");
   avoraInitReveal();
   avoraLoadHero();
   avoraLoadProjects();
   avoraLoadGuidesTeaser();
+  avoraLoadReviews("reviews-grid", "reviews-empty", 9);
+  avoraWireReviewModal();
   document.addEventListener("avora:locale-changed", () => {
     avoraLoadProjects();
     avoraLoadGuidesTeaser();

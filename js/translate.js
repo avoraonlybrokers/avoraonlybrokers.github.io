@@ -2,40 +2,61 @@
 // AVORA — автоперевод RU → EN
 //
 // Использует бесплатный MyMemory Translation API (без ключей,
-// без регистрации). У него есть дневной лимит символов на IP
-// (обычно достаточно для сайта такого размера), и лимит длины
-// одного запроса — поэтому длинный текст режется на куски по
-// абзацам и переводится по частям.
+// без регистрации). Переводит ВСЕГДА при сохранении — если в
+// поле EN уже что-то было, оно перезаписывается свежим
+// переводом текущего RU-текста.
 //
-// Если перевод не удался (лимит, сеть) — просто возвращается
-// исходный русский текст, ничего не ломается: EN-версия в
-// таком случае будет временно совпадать с RU, и её всегда
-// можно поправить вручную в admin-панели.
+// MyMemory иногда возвращает HTTP 200 с текстом ошибки внутри
+// (лимит запроса, лимит в день) вместо самого перевода — это
+// проверяется отдельно, чтобы такой "перевод" не долетал сайту
+// как настоящий английский текст.
 // ============================================================
 
+function avoraLooksUntranslated(original, translated) {
+  if (!translated) return true;
+  const t = translated.trim();
+  if (!t) return true;
+  // MyMemory иногда отвечает служебным текстом при превышении лимита.
+  const errorPhrases = ["QUERY LENGTH LIMIT", "INVALID SOURCE LANGUAGE", "INVALID TARGET LANGUAGE", "IS AN INVALID"];
+  if (errorPhrases.some((p) => t.toUpperCase().includes(p))) return true;
+  // Если в "переводе" всё ещё остались кириллические буквы —
+  // значит перевод не удался (кроме случаев, когда исходник
+  // короткий и это, например, просто цифры/название на латинице).
+  const hasCyrillic = /[а-яА-ЯёЁ]/.test(t);
+  const originalHasCyrillic = /[а-яА-ЯёЁ]/.test(original);
+  if (originalHasCyrillic && hasCyrillic && t === original.trim()) return true;
+  return false;
+}
+
+function avoraSleep(ms) {
+  return new Promise((resolve) => setTimeout(resolve, ms));
+}
+
 async function avoraTranslateChunk(text) {
-  if (!text || !text.trim()) return text;
+  if (!text || !text.trim()) return { ok: true, text };
   try {
     const url = `https://api.mymemory.translated.net/get?q=${encodeURIComponent(text)}&langpair=ru|en`;
     const res = await fetch(url);
     const data = await res.json();
     const translated = data?.responseData?.translatedText;
-    if (!translated || data?.responseStatus !== 200) return text;
-    return translated;
+    if (avoraLooksUntranslated(text, translated)) {
+      return { ok: false, text };
+    }
+    return { ok: true, text: translated };
   } catch (e) {
-    return text;
+    return { ok: false, text };
   }
 }
 
 // Разбивает длинный текст на куски по абзацам, не превышая
 // ~450 символов на запрос (ограничение бесплатного API).
 async function avoraTranslateRuToEn(text) {
-  if (!text || !text.trim()) return "";
-  const paragraphs = text.split("\n");
+  if (!text || !text.trim()) return { ok: true, text: "" };
+  const lines = text.split("\n");
   const chunks = [];
   let current = "";
 
-  for (const line of paragraphs) {
+  for (const line of lines) {
     if ((current + "\n" + line).length > 450) {
       chunks.push(current);
       current = line;
@@ -46,29 +67,43 @@ async function avoraTranslateRuToEn(text) {
   if (current) chunks.push(current);
 
   const translatedChunks = [];
+  let allOk = true;
   for (const chunk of chunks) {
-    translatedChunks.push(await avoraTranslateChunk(chunk));
+    const result = await avoraTranslateChunk(chunk);
+    if (!result.ok) allOk = false;
+    translatedChunks.push(result.text);
+    await avoraSleep(250); // не долбим бесплатный API слишком часто
   }
-  return translatedChunks.join("\n");
+  return { ok: allOk, text: translatedChunks.join("\n") };
 }
 
 /**
- * Заполняет пустые EN-поля автопереводом соответствующих RU-полей.
+ * Переводит RU-поля в соответствующие EN-поля ВСЕГДА, когда в
+ * RU что-то написано — перезаписывая то, что было в EN раньше.
  * pairs: [[ruFieldId, enFieldId], ...]
- * Если EN-поле уже что-то содержит — трогать не будет (админ мог
- * поправить перевод вручную, это никогда не перезаписывается).
+ * Возвращает true, если хотя бы одно поле не удалось перевести
+ * (тогда там останется русский текст, чтобы сайт не остался
+ * пустым — но статус покажет предупреждение).
  */
 async function avoraAutoFillTranslations(pairs, statusEl) {
+  let anyFailed = false;
   for (const [ruId, enId] of pairs) {
     const ruEl = document.getElementById(ruId);
     const enEl = document.getElementById(enId);
     if (!ruEl || !enEl) continue;
-    if (ruEl.value.trim() && !enEl.value.trim()) {
-      if (statusEl) statusEl.textContent = "Перевод на английский…";
-      enEl.value = await avoraTranslateRuToEn(ruEl.value);
-    }
+    if (!ruEl.value.trim()) continue;
+
+    if (statusEl) statusEl.textContent = "Перевод на английский…";
+    const result = await avoraTranslateRuToEn(ruEl.value);
+    enEl.value = result.text;
+    if (!result.ok) anyFailed = true;
   }
-  if (statusEl) statusEl.textContent = "";
+  if (statusEl) {
+    statusEl.textContent = anyFailed
+      ? "Часть текста не удалось перевести автоматически (лимит сервиса) — проверьте английские поля вручную."
+      : "";
+  }
+  return anyFailed;
 }
 
 // Простая транслитерация RU → латиница для авто-генерации slug.

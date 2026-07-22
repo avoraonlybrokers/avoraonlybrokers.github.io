@@ -48,8 +48,10 @@ async function avoraLoadComplex() {
   // ---- Загружаем апартаменты (вместе с кнопкой внутри) ----
   await loadApartments(complex);
 
-  // ---- Trust блок и карта (остаются на месте) ----
+  // ---- Trust блок ----
   avoraRenderTrustBlock(document.getElementById("block-trust"), complex);
+
+  // ---- Карта ----
   avoraRenderMap(document.getElementById("block-map"), complex);
 
   avoraApplyTranslations();
@@ -83,7 +85,8 @@ function renderSummary(complex) {
 }
 
 // ============================================================
-// Апартаменты + кнопка "Отправить заявку застройщику" внизу
+// Апартаменты + кнопка "Отправить заявку застройщику"
+// Кнопка — ПОСЛЕ списка апартаментов, ДО Trust блока
 // ============================================================
 async function loadApartments(complex) {
   const { data: apartments } = await supabaseClient
@@ -128,7 +131,7 @@ async function loadApartments(complex) {
     })
     .join("");
 
-  // Кнопка "Отправить заявку застройщику" — прямо под списком
+  // Кнопка "Отправить заявку застройщику" — ПОСЛЕ списка, ДО Trust блока
   const leadButtonHTML = complex.developer_lead_url
     ? `
       <div style="margin-top:20px;display:flex;justify-content:flex-start;">

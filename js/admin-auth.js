@@ -48,6 +48,41 @@ function avoraRenderAdminShell(activeHref) {
   `;
   shell.classList.add("admin-shell");
 
+  // ============================================================
+  // Мобильное меню (гамбургер)
+  // ============================================================
+  if (!document.getElementById('admin-menu-toggle')) {
+    const toggle = document.createElement('button');
+    toggle.id = 'admin-menu-toggle';
+    toggle.className = 'admin-menu-toggle';
+    toggle.innerHTML = '<i data-lucide="menu" width="22" height="22"></i>';
+    toggle.setAttribute('aria-label', 'Toggle menu');
+    document.body.prepend(toggle);
+
+    const overlay = document.createElement('div');
+    overlay.id = 'admin-sidebar-overlay';
+    overlay.className = 'admin-sidebar-overlay';
+    document.body.prepend(overlay);
+
+    toggle.addEventListener('click', () => {
+      const sidebar = document.querySelector('.admin-sidebar');
+      const overlayEl = document.getElementById('admin-sidebar-overlay');
+      if (sidebar) {
+        sidebar.classList.toggle('open');
+        overlayEl.classList.toggle('open');
+      }
+    });
+
+    overlay.addEventListener('click', () => {
+      const sidebar = document.querySelector('.admin-sidebar');
+      const overlayEl = document.getElementById('admin-sidebar-overlay');
+      if (sidebar) {
+        sidebar.classList.remove('open');
+        overlayEl.classList.remove('open');
+      }
+    });
+  }
+
   document.getElementById("admin-logout-btn").addEventListener("click", async () => {
     await supabaseClient.auth.signOut();
     window.location.href = "index.html";
@@ -56,7 +91,6 @@ function avoraRenderAdminShell(activeHref) {
   avoraRenderIcons();
   avoraMountVisitCounter();
 }
-
 async function avoraMountVisitCounter() {
   const el = document.getElementById("visit-counter");
   if (!el) return;

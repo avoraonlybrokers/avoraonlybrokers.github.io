@@ -258,8 +258,8 @@ function avoraRenderLeadForm(container, { developerLeadUrl }) {
     return;
   }
   container.innerHTML = `
-    <a href="${developerLeadUrl}" target="_blank" rel="noopener noreferrer" class="btn-gold" style="display:inline-flex;align-items:center;justify-content:center;gap:8px;text-decoration:none">
-      <span data-i18n="send_lead"></span> <i data-lucide="send" width="15" height="15"></i>
+    <a href="${developerLeadUrl}" target="_blank" rel="noopener noreferrer" class="btn-gold" style="display:inline-flex;align-items:center;justify-content:center;gap:8px;text-decoration:none;width:auto;padding:12px 28px;font-size:16px;margin-top:8px;">
+      <span data-i18n="send_lead"></span> <i data-lucide="send" width="16" height="16"></i>
     </a>`;
   avoraApplyTranslations();
   avoraRenderIcons();

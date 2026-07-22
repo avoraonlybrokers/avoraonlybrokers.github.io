@@ -216,58 +216,6 @@ function avoraEscapeHtml(str) {
     .replaceAll('"', "&quot;");
 }
 
-// ============================================================
-// Глобальный видео-фон с плавным blur при скролле
-// ============================================================
-
-function avoraInitGlobalBg() {
-  const bgVideo = document.getElementById('global-bg-video');
-  const videoEl = document.getElementById('global-hero-video');
-  if (!bgVideo || !videoEl) return;
-
-  // Загружаем видео из настроек
-  async function loadBgVideo() {
-    try {
-      const { data: settings } = await supabaseClient
-        .from('site_settings')
-        .select('hero_video_url')
-        .eq('id', 1)
-        .single();
-
-      if (settings?.hero_video_url) {
-        videoEl.src = settings.hero_video_url;
-        videoEl.load();
-        // Если видео уже загружено, пытаемся запустить
-        videoEl.play().catch(() => {});
-      }
-    } catch (err) {
-      // Видео не загружено — оставляем фон без видео
-    }
-  }
-  loadBgVideo();
-
-  // Плавное добавление blur при скролле
-  let isBlurred = false;
-  const threshold = 200; // через сколько пикселей скролла включать blur
-
-  window.addEventListener('scroll', () => {
-    const scrollY = window.scrollY;
-    const shouldBlur = scrollY > threshold;
-
-    if (shouldBlur && !isBlurred) {
-      bgVideo.classList.add('blurred');
-      isBlurred = true;
-    } else if (!shouldBlur && isBlurred) {
-      bgVideo.classList.remove('blurred');
-      isBlurred = false;
-    }
-  }, { passive: true });
-}
-
-// ============================================================
-// Счётчик визитов
-// ============================================================
-
 // Считает визит один раз за сессию браузера (чтобы переходы между
 // страницами одного и того же человека не накручивали счётчик).
 // На admin-страницах не считаем.
@@ -283,5 +231,4 @@ document.addEventListener("DOMContentLoaded", () => {
   avoraMountHeader();
   avoraMountFooter();
   avoraTrackVisit();
-  avoraInitGlobalBg(); // Инициализация видео-фона при загрузке любой страницы
 });

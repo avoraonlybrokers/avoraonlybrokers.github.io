@@ -12,139 +12,104 @@
 </head>
 <body>
 
-<!-- ============================================================
-     Фоновое видео на всех страницах
-     ============================================================ -->
-<div id="global-bg-video">
-  <video id="global-hero-video" autoplay muted loop playsinline></video>
-  <div class="global-bg-scrim"></div>
+<div id="avora-preloader">
+  <div id="avora-preloader-letters" class="preloader-title"></div>
 </div>
 
-<!-- ============================================================
-     ВЕСЬ КОНТЕНТ — ПОВЕРХ ФОНА
-     ============================================================ -->
-<div class="global-bg-content">
+<header id="avora-header"></header>
 
-  <div id="avora-preloader">
-    <div id="avora-preloader-letters" class="preloader-title"></div>
-  </div>
-
-  <header id="avora-header"></header>
-
-  <main>
-    <section class="hero" id="hero">
-      <div class="hero-fallback-bg" id="hero-fallback"></div>
-      <video id="hero-video" autoplay loop muted playsinline preload="metadata" class="hidden"></video>
-      <div class="hero-scrim"></div>
-      <div class="hero-content">
-        <div class="eyebrow"><i data-lucide="gem" width="16" height="16"></i><span data-i18n="brand_tagline"></span></div>
-        <h1 class="hero-title font-display" id="hero-title-letters"></h1>
-        <p class="hero-by" data-i18n="brand_by"></p>
-        <p class="hero-regions" data-i18n="brand_regions"></p>
-        <p class="hero-disclaimer" data-i18n="hero_disclaimer"></p>
-        <div class="hero-cta-wrap">
-          <a href="#projects" class="btn-outline-gold" data-i18n="hero_cta"></a>
-        </div>
-      </div>
-      <div class="scroll-hint"><i data-lucide="arrow-down" width="18" height="18"></i></div>
-    </section>
-
-    <section class="block" id="projects">
-      <div class="container">
-        <div class="section-head reveal">
-          <span class="eyebrow" data-i18n="direct_from_developer"></span>
-          <h2 class="font-display" data-i18n="listing_title"></h2>
-          <p data-i18n="listing_subtitle"></p>
-        </div>
-        <div id="projects-grid" class="grid-cards"></div>
-        <p id="projects-empty" class="hidden" data-i18n="listing_empty" style="color:rgba(247,247,245,0.5)"></p>
-      </div>
-    </section>
-
-    <section class="block" id="guides-teaser">
-      <div class="container">
-        <div class="section-head reveal">
-          <span class="eyebrow" data-i18n="nav_guides"></span>
-          <h2 class="font-display" data-i18n="guides_title"></h2>
-          <p data-i18n="guides_subtitle"></p>
-        </div>
-        <div id="guides-grid" class="guide-grid"></div>
-        <p id="guides-empty" class="hidden" data-i18n="guides_empty" style="color:rgba(247,247,245,0.5)"></p>
-        <div class="text-center mt-8">
-          <a href="guides.html" class="btn-outline-gold" style="display:inline-flex">
-            <span data-i18n="guides_view_all"></span>
-          </a>
-        </div>
-      </div>
-    </section>
-
-    <section class="block" id="reviews-section">
-      <div class="container">
-        <div class="section-head reveal">
-          <h2 class="font-display" data-i18n="reviews_title"></h2>
-          <p data-i18n="reviews_subtitle"></p>
-        </div>
-        <div id="reviews-grid" class="review-grid"></div>
-        <p id="reviews-empty" class="hidden" data-i18n="reviews_empty" style="color:rgba(247,247,245,0.5)"></p>
-        <div class="review-cta">
-          <button type="button" id="avora-review-trigger" class="btn-outline-gold">
-            <i data-lucide="star" width="14" height="14"></i>
-            <span data-i18n="leave_review"></span>
-          </button>
-        </div>
-      </div>
-    </section>
-  </main>
-
-  <div class="modal-overlay" id="avora-review-overlay">
-    <div class="modal-panel">
-      <button class="modal-close" aria-label="Close"><i data-lucide="x" width="18" height="18"></i></button>
-
-      <div id="review-form-wrap">
-        <div class="modal-header">
-          <div class="modal-icon"><i data-lucide="star" width="18" height="18"></i></div>
-          <h2 data-i18n="review_form_title"></h2>
-        </div>
-        <form id="review-form">
-          <input class="form-field" id="review-name" required data-i18n-placeholder="review_name_placeholder" />
-          <p class="eyebrow" style="margin-bottom:8px" data-i18n="review_rating_label"></p>
-          <div id="review-star-picker" class="star-picker" style="margin-bottom:16px"></div>
-          <textarea class="form-field" id="review-text" rows="4" required data-i18n-placeholder="review_text_placeholder"></textarea>
-          <p class="form-error hidden" id="review-form-error"></p>
-          <button type="submit" class="btn-gold" id="review-submit-btn" data-i18n="review_submit"></button>
-        </form>
-      </div>
-
-      <div id="review-success-wrap" class="hidden" style="text-align:center;padding:12px 0">
-        <div class="modal-icon"><i data-lucide="check" width="18" height="18"></i></div>
-        <p data-i18n="review_thanks" style="margin-top:8px;color:rgba(247,247,245,0.75);font-size:14px"></p>
+<main>
+  <section class="hero" id="hero">
+    <div class="hero-fallback-bg" id="hero-fallback"></div>
+    <video id="hero-video" autoplay loop muted playsinline preload="metadata" class="hidden"></video>
+    <div class="hero-scrim"></div>
+    <div class="hero-content">
+      <div class="eyebrow"><i data-lucide="gem" width="16" height="16"></i><span data-i18n="brand_tagline"></span></div>
+      <h1 class="hero-title font-display" id="hero-title-letters"></h1>
+      <p class="hero-by" data-i18n="brand_by"></p>
+      <p class="hero-regions" data-i18n="brand_regions"></p>
+      <p class="hero-disclaimer" data-i18n="hero_disclaimer"></p>
+      <div class="hero-cta-wrap">
+        <a href="#projects" class="btn-outline-gold" data-i18n="hero_cta"></a>
       </div>
     </div>
-  </div>
+    <div class="scroll-hint"><i data-lucide="arrow-down" width="18" height="18"></i></div>
+  </section>
 
-  <footer id="avora-footer"></footer>
+  <section class="block" id="projects">
+    <div class="container">
+      <div class="section-head reveal">
+        <span class="eyebrow" data-i18n="direct_from_developer"></span>
+        <h2 class="font-display" data-i18n="listing_title"></h2>
+        <p data-i18n="listing_subtitle"></p>
+      </div>
+      <div id="projects-grid" class="grid-cards"></div>
+      <p id="projects-empty" class="hidden" data-i18n="listing_empty" style="color:rgba(247,247,245,0.5)"></p>
+    </div>
+  </section>
 
-</div>
-<!-- ============================================================
-     КОНЕЦ КОНТЕНТА
-     ============================================================ -->
+  <section class="block" id="guides-teaser">
+    <div class="container">
+      <div class="section-head reveal">
+        <span class="eyebrow" data-i18n="nav_guides"></span>
+        <h2 class="font-display" data-i18n="guides_title"></h2>
+        <p data-i18n="guides_subtitle"></p>
+      </div>
+      <div id="guides-grid" class="guide-grid"></div>
+      <p id="guides-empty" class="hidden" data-i18n="guides_empty" style="color:rgba(247,247,245,0.5)"></p>
+      <div class="text-center mt-8">
+        <a href="guides.html" class="btn-outline-gold" style="display:inline-flex">
+          <span data-i18n="guides_view_all"></span>
+        </a>
+      </div>
+    </div>
+  </section>
 
-<!-- Модалка входа в админку -->
-<div id="avora-admin-overlay" class="modal-overlay">
+  <section class="block" id="reviews-section">
+    <div class="container">
+      <div class="section-head reveal">
+        <h2 class="font-display" data-i18n="reviews_title"></h2>
+        <p data-i18n="reviews_subtitle"></p>
+      </div>
+      <div id="reviews-grid" class="review-grid"></div>
+      <p id="reviews-empty" class="hidden" data-i18n="reviews_empty" style="color:rgba(247,247,245,0.5)"></p>
+      <div class="review-cta">
+        <button type="button" id="avora-review-trigger" class="btn-outline-gold">
+          <i data-lucide="star" width="14" height="14"></i>
+          <span data-i18n="leave_review"></span>
+        </button>
+      </div>
+    </div>
+  </section>
+</main>
+
+<div class="modal-overlay" id="avora-review-overlay">
   <div class="modal-panel">
-    <button class="modal-close" id="avora-admin-close"><i data-lucide="x" width="18" height="18"></i></button>
-    <div class="modal-header">
-      <div class="modal-icon"><i data-lucide="lock" width="18" height="18"></i></div>
-      <h2 data-i18n="admin_modal_title"></h2>
-      <p data-i18n="admin_password_label"></p>
+    <button class="modal-close" aria-label="Close"><i data-lucide="x" width="18" height="18"></i></button>
+
+    <div id="review-form-wrap">
+      <div class="modal-header">
+        <div class="modal-icon"><i data-lucide="star" width="18" height="18"></i></div>
+        <h2 data-i18n="review_form_title"></h2>
+      </div>
+      <form id="review-form">
+        <input class="form-field" id="review-name" required data-i18n-placeholder="review_name_placeholder" />
+        <p class="eyebrow" style="margin-bottom:8px" data-i18n="review_rating_label"></p>
+        <div id="review-star-picker" class="star-picker" style="margin-bottom:16px"></div>
+        <textarea class="form-field" id="review-text" rows="4" required data-i18n-placeholder="review_text_placeholder"></textarea>
+        <p class="form-error hidden" id="review-form-error"></p>
+        <button type="submit" class="btn-gold" id="review-submit-btn" data-i18n="review_submit"></button>
+      </form>
     </div>
-    <form id="avora-admin-form">
-      <input type="password" class="form-field" id="avora-admin-password" required autocomplete="current-password" data-i18n-placeholder="admin_password_placeholder" />
-      <p class="form-error hidden" id="avora-admin-error" data-i18n="admin_invalid"></p>
-      <button type="submit" class="btn-gold" id="avora-admin-submit" data-i18n="admin_login"></button>
-    </form>
+
+    <div id="review-success-wrap" class="hidden" style="text-align:center;padding:12px 0">
+      <div class="modal-icon"><i data-lucide="check" width="18" height="18"></i></div>
+      <p data-i18n="review_thanks" style="margin-top:8px;color:rgba(247,247,245,0.75);font-size:14px"></p>
+    </div>
   </div>
 </div>
+
+<footer id="avora-footer"></footer>
 
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2/dist/umd/supabase.min.js"></script>
 <script src="js/config.js"></script>
@@ -153,15 +118,5 @@
 <script src="js/shared.js"></script>
 <script src="js/components.js"></script>
 <script src="js/home.js"></script>
-
-<!-- Инициализация глобального видео-фона -->
-<script>
-  document.addEventListener('DOMContentLoaded', function() {
-    if (typeof avoraInitGlobalBg === 'function') {
-      avoraInitGlobalBg();
-    }
-  });
-</script>
-
 </body>
 </html>

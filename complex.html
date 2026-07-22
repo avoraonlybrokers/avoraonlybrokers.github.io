@@ -11,87 +11,52 @@
 </head>
 <body>
 
-<!-- ============================================================
-     Фоновое видео на всех страницах
-     ============================================================ -->
-<div id="global-bg-video">
-  <video id="global-hero-video" autoplay muted loop playsinline></video>
-  <div class="global-bg-scrim"></div>
-</div>
+<header id="avora-header"></header>
 
-<!-- ============================================================
-     ВЕСЬ КОНТЕНТ — ПОВЕРХ ФОНА
-     ============================================================ -->
-<div class="global-bg-content">
+<main>
+  <div class="carousel hidden" id="complex-carousel"></div>
 
-  <header id="avora-header"></header>
+  <div class="container" style="padding-top:40px;padding-bottom:80px;max-width:760px;">
+    <div id="complex-summary" class="reveal"></div>
 
-  <main>
-    <div class="carousel hidden" id="complex-carousel"></div>
+    <div id="complex-blocks">
+      <section class="block-item hidden" id="block-about">
+        <h3 style="font-size:24px" data-i18n="about"></h3>
+        <p id="about-text" style="margin-top:16px;line-height:1.7;color:rgba(247,247,245,0.8);white-space:pre-line"></p>
+      </section>
 
-    <div class="container" style="padding-top:40px;padding-bottom:80px;max-width:760px;">
-      <div id="complex-summary" class="reveal"></div>
+      <section class="block-item hidden" id="block-format">
+        <h3 style="font-size:24px" data-i18n="format"></h3>
+        <p id="format-text" style="margin-top:16px;line-height:1.7;color:rgba(247,247,245,0.8);white-space:pre-line"></p>
+      </section>
 
-      <div id="complex-blocks">
-        <section class="block-item hidden" id="block-about">
-          <h3 style="font-size:24px" data-i18n="about"></h3>
-          <p id="about-text" style="margin-top:16px;line-height:1.7;color:rgba(247,247,245,0.8);white-space:pre-line"></p>
-        </section>
+      <section class="block-item hidden" id="block-payment">
+        <h3 style="font-size:24px" data-i18n="payment_plan"></h3>
+        <p id="payment-text" style="margin-top:16px;line-height:1.7;color:rgba(247,247,245,0.8);white-space:pre-line"></p>
+      </section>
 
-        <section class="block-item hidden" id="block-format">
-          <h3 style="font-size:24px" data-i18n="format"></h3>
-          <p id="format-text" style="margin-top:16px;line-height:1.7;color:rgba(247,247,245,0.8);white-space:pre-line"></p>
-        </section>
+      <section class="block-item hidden" id="block-amenities"></section>
 
-        <section class="block-item hidden" id="block-payment">
-          <h3 style="font-size:24px" data-i18n="payment_plan"></h3>
-          <p id="payment-text" style="margin-top:16px;line-height:1.7;color:rgba(247,247,245,0.8);white-space:pre-line"></p>
-        </section>
+      <section class="block-item hidden" id="block-apartments">
+        <h3 style="font-size:24px;margin-bottom:16px" data-i18n="apartments_title"></h3>
+        <div id="apartments-list"></div>
+      </section>
 
-        <section class="block-item hidden" id="block-amenities"></section>
+      <section class="block-item hidden" id="block-extra">
+        <h3 style="font-size:24px" data-i18n="extra"></h3>
+        <p id="extra-text" style="margin-top:16px;line-height:1.7;color:rgba(247,247,245,0.8);white-space:pre-line"></p>
+      </section>
 
-        <section class="block-item hidden" id="block-apartments">
-          <h3 style="font-size:24px;margin-bottom:16px" data-i18n="apartments_title"></h3>
-          <div id="apartments-list"></div>
-        </section>
+      <section class="block-item" id="block-trust"></section>
 
-        <section class="block-item hidden" id="block-extra">
-          <h3 style="font-size:24px" data-i18n="extra"></h3>
-          <p id="extra-text" style="margin-top:16px;line-height:1.7;color:rgba(247,247,245,0.8);white-space:pre-line"></p>
-        </section>
+      <section class="block-item" id="block-map"></section>
 
-        <section class="block-item" id="block-trust"></section>
-
-        <section class="block-item" id="block-map"></section>
-
-        <section class="block-item" id="block-lead"></section>
-      </div>
+      <section class="block-item" id="block-lead"></section>
     </div>
-  </main>
-
-  <footer id="avora-footer"></footer>
-
-</div>
-<!-- ============================================================
-     КОНЕЦ КОНТЕНТА
-     ============================================================ -->
-
-<!-- Модалка входа в админку -->
-<div id="avora-admin-overlay" class="modal-overlay">
-  <div class="modal-panel">
-    <button class="modal-close" id="avora-admin-close"><i data-lucide="x" width="18" height="18"></i></button>
-    <div class="modal-header">
-      <div class="modal-icon"><i data-lucide="lock" width="18" height="18"></i></div>
-      <h2 data-i18n="admin_modal_title"></h2>
-      <p data-i18n="admin_password_label"></p>
-    </div>
-    <form id="avora-admin-form">
-      <input type="password" class="form-field" id="avora-admin-password" required autocomplete="current-password" data-i18n-placeholder="admin_password_placeholder" />
-      <p class="form-error hidden" id="avora-admin-error" data-i18n="admin_invalid"></p>
-      <button type="submit" class="btn-gold" id="avora-admin-submit" data-i18n="admin_login"></button>
-    </form>
   </div>
-</div>
+</main>
+
+<footer id="avora-footer"></footer>
 
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2/dist/umd/supabase.min.js"></script>
 <script src="js/config.js"></script>
@@ -100,15 +65,5 @@
 <script src="js/shared.js"></script>
 <script src="js/components.js"></script>
 <script src="js/complex.js"></script>
-
-<!-- Инициализация глобального видео-фона -->
-<script>
-  document.addEventListener('DOMContentLoaded', function() {
-    if (typeof avoraInitGlobalBg === 'function') {
-      avoraInitGlobalBg();
-    }
-  });
-</script>
-
 </body>
 </html>

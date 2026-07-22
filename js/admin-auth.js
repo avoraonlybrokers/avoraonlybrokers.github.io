@@ -5,25 +5,74 @@ const ADMIN_NAV = [
   { href: "admin-leads.html", label: "Leads", icon: "share-2" },
   { href: "admin-guides.html", label: "Guides", icon: "book-open" },
   { href: "admin-reviews.html", label: "Reviews", icon: "star" },
-  { href: "admin-settings.html", label: "Settings & Social", icon: "settings" }, // ← ЭТА СТРОКА
+  { href: "admin-settings.html", label: "Settings & Social", icon: "settings" },
 ];
+
+// ============================================================
+// Проверка сессии с автоматическим продлением
+// ============================================================
 
 // Resolves once the auth state is known. Redirects away if the
 // session does not belong to the admin user. Every admin-*.html
 // page must call this before rendering anything sensitive.
 async function avoraRequireAdmin() {
+  // Пробуем обновить сессию перед проверкой
+  try {
+    await supabaseClient.auth.refreshSession();
+  } catch (e) {
+    // Не обновилось — значит сессии нет
+  }
+
   const { data } = await supabaseClient.auth.getUser();
   const role = data?.user?.user_metadata?.role;
+  
   if (!data?.user || role !== "admin") {
+    // Если пользователь есть, но не admin — выходим
+    if (data?.user) {
+      await supabaseClient.auth.signOut();
+    }
     window.location.href = "index.html";
     return null;
   }
+
+  // Продлеваем сессию после успешной проверки
+  await supabaseClient.auth.refreshSession();
+
   return data.user;
 }
+
+// ============================================================
+// Автоматическое обновление сессии каждые 6 часов
+// ============================================================
+
+let sessionRefreshInterval = null;
+
+function avoraStartSessionRefresh() {
+  if (sessionRefreshInterval) return;
+  
+  // Каждые 6 часов обновляем сессию
+  sessionRefreshInterval = setInterval(async () => {
+    try {
+      const { data } = await supabaseClient.auth.refreshSession();
+      if (data?.session) {
+        console.log("Сессия обновлена");
+      }
+    } catch (err) {
+      // Не обновилось — пропускаем
+    }
+  }, 6 * 60 * 60 * 1000); // 6 часов
+}
+
+// ============================================================
+// Рендер админ-шела
+// ============================================================
 
 function avoraRenderAdminShell(activeHref) {
   const shell = document.getElementById("admin-shell");
   if (!shell) return;
+
+  // Запускаем автообновление сессии
+  avoraStartSessionRefresh();
 
   const currentPage = activeHref || window.location.pathname.split("/").pop();
 
@@ -85,12 +134,22 @@ function avoraRenderAdminShell(activeHref) {
 
   document.getElementById("admin-logout-btn").addEventListener("click", async () => {
     await supabaseClient.auth.signOut();
+    // Останавливаем обновление сессии
+    if (sessionRefreshInterval) {
+      clearInterval(sessionRefreshInterval);
+      sessionRefreshInterval = null;
+    }
     window.location.href = "index.html";
   });
 
   avoraRenderIcons();
   avoraMountVisitCounter();
 }
+
+// ============================================================
+// Счётчик визитов
+// ============================================================
+
 async function avoraMountVisitCounter() {
   const el = document.getElementById("visit-counter");
   if (!el) return;
@@ -121,6 +180,10 @@ async function avoraMountVisitCounter() {
     if (!el.contains(e.target)) panel.classList.add("hidden");
   });
 }
+
+// ============================================================
+// Загрузка файлов в Storage
+// ============================================================
 
 // Uploads a file to Supabase Storage and returns its public URL.
 // bucket must already exist and be public (see README).

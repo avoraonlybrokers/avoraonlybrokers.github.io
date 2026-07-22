@@ -86,7 +86,7 @@ function renderSummary(complex) {
 
 // ============================================================
 // Апартаменты + кнопка "Отправить заявку застройщику"
-// Кнопка — ПОСЛЕ списка апартаментов, ДО Trust блока
+// Кнопка — ПОСЛЕ списка апартаментов
 // ============================================================
 async function loadApartments(complex) {
   const { data: apartments } = await supabaseClient
@@ -131,12 +131,18 @@ async function loadApartments(complex) {
     })
     .join("");
 
-  // Кнопка "Отправить заявку застройщику" — ПОСЛЕ списка, ДО Trust блока
+  // Кнопка "Отправить заявку застройщику" — ПОСЛЕ списка апартаментов
+  // Всегда показываем, если есть developer_lead_url
   const leadButtonHTML = complex.developer_lead_url
     ? `
-      <div style="margin-top:20px;display:flex;justify-content:flex-start;">
-        <a href="${complex.developer_lead_url}" target="_blank" rel="noopener noreferrer" class="btn-gold" style="display:inline-flex;align-items:center;justify-content:center;gap:8px;text-decoration:none;padding:14px 32px;font-size:16px;">
-          <span data-i18n="send_lead"></span> <i data-lucide="send" width="18" height="18"></i>
+      <div style="margin-top:24px;display:flex;justify-content:flex-start;">
+        <a href="${complex.developer_lead_url}" target="_blank" rel="noopener noreferrer" 
+           style="display:inline-flex;align-items:center;justify-content:center;gap:8px;
+                  background:var(--gold-soft);color:var(--ink);padding:10px 24px;
+                  border-radius:999px;font-size:13px;font-weight:600;letter-spacing:0.3px;
+                  text-decoration:none;text-transform:uppercase;white-space:nowrap;
+                  transition:background 0.2s;border:none;cursor:pointer;">
+          <span data-i18n="send_lead"></span> <i data-lucide="send" width="14" height="14" style="flex-shrink:0;"></i>
         </a>
       </div>
     `

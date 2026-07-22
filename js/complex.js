@@ -101,8 +101,13 @@ async function loadApartments(complex) {
       const area = avoraFormatArea(apt.area_from_sqm);
       const price = avoraFormatUsd(apt.price_usd);
       const bedroomsLabel = apt.bedrooms != null ? `${apt.bedrooms} ${avoraT("bedrooms").toLowerCase()}` : "";
+      
+      // Если есть external_url — используем её, иначе ссылка на страницу апартамента
+      const linkUrl = apt.external_url || `apartment.html?complex=${encodeURIComponent(complex.slug)}&apt=${encodeURIComponent(apt.slug)}`;
+      const isExternal = apt.external_url ? true : false;
+
       return `
-      <a href="apartment.html?complex=${encodeURIComponent(complex.slug)}&apt=${encodeURIComponent(apt.slug)}"
+      <a href="${linkUrl}" target="${isExternal ? '_blank' : '_self'}" 
          style="display:flex;align-items:center;justify-content:space-between;border:1px solid var(--line);border-radius:12px;padding:16px 20px;margin-bottom:10px">
         <div style="display:flex;align-items:center;gap:12px">
           <i data-lucide="layers" width="16" height="16" style="color:var(--gold-soft)"></i>
@@ -111,7 +116,12 @@ async function loadApartments(complex) {
             <p style="font-size:12px;color:rgba(247,247,245,0.5)">${[area ? `${avoraT("listing_from")} ${area}` : "", bedroomsLabel].filter(Boolean).join(" · ")}</p>
           </div>
         </div>
-        ${price ? `<span style="color:var(--gold-soft);font-size:14px">${price}</span>` : ""}
+        <div style="display:flex;align-items:center;gap:12px">
+          ${price ? `<span style="color:var(--gold-soft);font-size:14px">${price}</span>` : ""}
+          <span class="btn-outline-gold" style="padding:6px 16px;font-size:12px;width:auto;">
+            ${isExternal ? 'Подробнее' : 'Открыть'}
+          </span>
+        </div>
       </a>`;
     })
     .join("");

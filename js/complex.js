@@ -45,16 +45,12 @@ async function avoraLoadComplex() {
     avoraRenderAmenities(amenitiesBlock, complex.amenities);
   }
 
-  avoraRenderTrustBlock(document.getElementById("block-trust"), complex);
-  avoraRenderMap(document.getElementById("block-map"), complex);
-
-  // ---- Загружаем апартаменты (простой список, без кликов) ----
+  // ---- Загружаем апартаменты (вместе с кнопкой внутри) ----
   await loadApartments(complex);
 
-  // ---- Кнопка "Отправить заявку застройщику" ----
-  avoraRenderLeadForm(document.getElementById("block-lead"), {
-    developerLeadUrl: complex.developer_lead_url,
-  });
+  // ---- Trust блок и карта (остаются на месте) ----
+  avoraRenderTrustBlock(document.getElementById("block-trust"), complex);
+  avoraRenderMap(document.getElementById("block-map"), complex);
 
   avoraApplyTranslations();
   avoraRenderIcons();
@@ -87,7 +83,7 @@ function renderSummary(complex) {
 }
 
 // ============================================================
-// Апартаменты — ПРОСТОЙ СПИСОК, БЕЗ КЛИКОВ
+// Апартаменты + кнопка "Отправить заявку застройщику" внизу
 // ============================================================
 async function loadApartments(complex) {
   const { data: apartments } = await supabaseClient
@@ -104,7 +100,8 @@ async function loadApartments(complex) {
   }
   block.classList.remove("hidden");
 
-  document.getElementById("apartments-list").innerHTML = apartments
+  // Список апартаментов
+  let listHTML = apartments
     .map((apt) => {
       const name = avoraPick(apt, "name") || apt.name_en;
       const area = avoraFormatArea(apt.area_from_sqm);
@@ -130,6 +127,19 @@ async function loadApartments(complex) {
       `;
     })
     .join("");
+
+  // Кнопка "Отправить заявку застройщику" — прямо под списком
+  const leadButtonHTML = complex.developer_lead_url
+    ? `
+      <div style="margin-top:20px;display:flex;justify-content:flex-start;">
+        <a href="${complex.developer_lead_url}" target="_blank" rel="noopener noreferrer" class="btn-gold" style="display:inline-flex;align-items:center;justify-content:center;gap:8px;text-decoration:none;padding:14px 32px;font-size:16px;">
+          <span data-i18n="send_lead"></span> <i data-lucide="send" width="18" height="18"></i>
+        </a>
+      </div>
+    `
+    : "";
+
+  document.getElementById("apartments-list").innerHTML = listHTML + leadButtonHTML;
 
   avoraRenderIcons();
   avoraApplyTranslations();

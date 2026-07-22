@@ -47,12 +47,16 @@ async function avoraLoadComplex() {
 
   avoraRenderTrustBlock(document.getElementById("block-trust"), complex);
   avoraRenderMap(document.getElementById("block-map"), complex);
+
+  // ---- Передаём комплекс в loadApartments ----
+  await loadApartments(complex);
+
+  // ---- Форма заявки для всего комплекса (если нет конкретного апартамента) ----
   avoraRenderLeadForm(document.getElementById("block-lead"), {
     complexId: complex.id,
     developerLeadUrl: complex.developer_lead_url,
   });
 
-  await loadApartments(complex);
   avoraApplyTranslations();
   avoraRenderIcons();
   avoraInitReveal();
@@ -83,6 +87,9 @@ function renderSummary(complex) {
   `;
 }
 
+// ============================================================
+// Апартаменты — при клике раскрывается кнопка "Отправить заявку"
+// ============================================================
 async function loadApartments(complex) {
   const { data: apartments } = await supabaseClient
     .from("apartments")
@@ -92,39 +99,115 @@ async function loadApartments(complex) {
     .order("sort_order", { ascending: true });
 
   const block = document.getElementById("block-apartments");
-  if (!apartments || apartments.length === 0) { block.classList.add("hidden"); return; }
+  if (!apartments || apartments.length === 0) {
+    block.classList.add("hidden");
+    return;
+  }
   block.classList.remove("hidden");
 
-  document.getElementById("apartments-list").innerHTML = apartments
-    .map((apt) => {
+  const container = document.getElementById("apartments-list");
+  container.innerHTML = apartments
+    .map((apt, index) => {
       const name = avoraPick(apt, "name") || apt.name_en;
       const area = avoraFormatArea(apt.area_from_sqm);
       const price = avoraFormatUsd(apt.price_usd);
-      const bedroomsLabel = apt.bedrooms != null ? `${apt.bedrooms} ${avoraT("bedrooms").toLowerCase()}` : "";
-      
-      // Если есть external_url — используем её, иначе ссылка на страницу апартамента
-      const linkUrl = apt.external_url || `apartment.html?complex=${encodeURIComponent(complex.slug)}&apt=${encodeURIComponent(apt.slug)}`;
-      const isExternal = apt.external_url ? true : false;
+      const bedroomsLabel =
+        apt.bedrooms != null
+          ? `${apt.bedrooms} ${avoraT("bedrooms").toLowerCase()}`
+          : "";
 
       return `
-      <a href="${linkUrl}" target="${isExternal ? '_blank' : '_self'}" 
-         style="display:flex;align-items:center;justify-content:space-between;border:1px solid var(--line);border-radius:12px;padding:16px 20px;margin-bottom:10px">
-        <div style="display:flex;align-items:center;gap:12px">
-          <i data-lucide="layers" width="16" height="16" style="color:var(--gold-soft)"></i>
-          <div>
-            <p>${avoraEscapeHtml(name)}</p>
-            <p style="font-size:12px;color:rgba(247,247,245,0.5)">${[area ? `${avoraT("listing_from")} ${area}` : "", bedroomsLabel].filter(Boolean).join(" · ")}</p>
+        <div class="apt-card" data-index="${index}" data-apt-id="${apt.id}" data-complex-id="${complex.id}">
+          <div class="apt-card-main" style="display:flex;align-items:center;justify-content:space-between;border:1px solid var(--line);border-radius:12px;padding:16px 20px;cursor:pointer;transition:border-color 0.2s">
+            <div style="display:flex;align-items:center;gap:12px">
+              <i data-lucide="layers" width="16" height="16" style="color:var(--gold-soft)"></i>
+              <div>
+                <p>${avoraEscapeHtml(name)}</p>
+                <p style="font-size:12px;color:rgba(247,247,245,0.5)">
+                  ${[area ? `${avoraT("listing_from")} ${area}` : "", bedroomsLabel].filter(Boolean).join(" · ")}
+                </p>
+              </div>
+            </div>
+            ${price ? `<span style="color:var(--gold-soft);font-size:14px">${price}</span>` : ""}
+          </div>
+          <div class="apt-card-expand" style="max-height:0;overflow:hidden;transition:max-height 0.4s ease, padding 0.3s ease;padding:0 20px;">
+            <div style="display:flex;justify-content:flex-end;padding:12px 0 16px 0;">
+              <button class="btn-gold apt-lead-btn" data-apt-id="${apt.id}" data-complex-id="${complex.id}" style="width:auto;padding:10px 28px;font-size:14px;">
+                <i data-lucide="send" width="16" height="16"></i>
+                <span data-i18n="send_lead"></span>
+              </button>
+            </div>
           </div>
         </div>
-        <div style="display:flex;align-items:center;gap:12px">
-          ${price ? `<span style="color:var(--gold-soft);font-size:14px">${price}</span>` : ""}
-          <span class="btn-outline-gold" style="padding:6px 16px;font-size:12px;width:auto;">
-            ${isExternal ? 'Подробнее' : 'Открыть'}
-          </span>
-        </div>
-      </a>`;
+      `;
     })
     .join("");
+
+  // --- Анимация раскрытия/скрытия ---
+  document.querySelectorAll(".apt-card-main").forEach((header, idx) => {
+    header.addEventListener("click", () => {
+      const card = header.closest(".apt-card");
+      const expand = card.querySelector(".apt-card-expand");
+      const isOpen = expand.style.maxHeight && expand.style.maxHeight !== "0px";
+
+      // Закрываем все остальные
+      document.querySelectorAll(".apt-card-expand").forEach((el) => {
+        if (el !== expand) {
+          el.style.maxHeight = "0px";
+          el.style.padding = "0 20px";
+        }
+      });
+
+      if (isOpen) {
+        expand.style.maxHeight = "0px";
+        expand.style.padding = "0 20px";
+      } else {
+        expand.style.maxHeight = expand.scrollHeight + 40 + "px";
+        expand.style.padding = "12px 20px 16px 20px";
+      }
+    });
+  });
+
+  // --- Обработка кнопок "Отправить заявку" ---
+  document.querySelectorAll(".apt-lead-btn").forEach((btn) => {
+    btn.addEventListener("click", (e) => {
+      e.stopPropagation();
+      const aptId = btn.dataset.aptId;
+      const complexId = btn.dataset.complexId;
+
+      // Находим форму заявки и подставляем apartment_id
+      const leadForm = document.getElementById("avora-lead-form");
+      if (leadForm) {
+        // Добавляем скрытое поле apartment_id, если его нет
+        let hiddenInput = leadForm.querySelector('input[name="apartment_id"]');
+        if (!hiddenInput) {
+          hiddenInput = document.createElement("input");
+          hiddenInput.type = "hidden";
+          hiddenInput.name = "apartment_id";
+          leadForm.prepend(hiddenInput);
+        }
+        hiddenInput.value = aptId;
+
+        // Прокручиваем к форме
+        leadForm.scrollIntoView({ behavior: "smooth", block: "center" });
+
+        // Меняем текст кнопки формы, чтобы было понятно
+        const submitBtn = leadForm.querySelector('button[type="submit"]');
+        if (submitBtn) {
+          const aptName = btn.closest(".apt-card").querySelector(".apt-card-main p")?.textContent || "";
+          submitBtn.textContent = `Отправить заявку на ${aptName}`;
+          // Через секунду возвращаем обратно
+          setTimeout(() => {
+            submitBtn.innerHTML = `<i data-lucide="send" width="15" height="15"></i> ${avoraT("send_lead")}`;
+            avoraRenderIcons();
+          }, 3000);
+        }
+      }
+    });
+  });
+
+  avoraRenderIcons();
+  avoraApplyTranslations();
 }
 
 document.addEventListener("DOMContentLoaded", () => {

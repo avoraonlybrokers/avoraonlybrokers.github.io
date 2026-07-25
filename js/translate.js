@@ -1,30 +1,46 @@
 // ============================================================
 // AVORA — автоперевод RU → EN
 //
-// Использует бесплатный MyMemory Translation API (без ключей,
-// без регистрации). Переводит ВСЕГДА при сохранении — если в
-// поле EN уже что-то было, оно перезаписывается свежим
-// переводом текущего RU-текста.
-//
-// MyMemory иногда возвращает HTTP 200 с текстом ошибки внутри
-// (лимит запроса, лимит в день) вместо самого перевода — это
-// проверяется отдельно, чтобы такой "перевод" не долетал сайту
-// как настоящий английский текст.
+// Основной движок — бесплатный публичный endpoint Google
+// Translate (без ключей и регистрации, у него нет маленького
+// дневного лимита в 5000 символов, как у MyMemory). Если он
+// вдруг недоступен — используется MyMemory как запасной
+// вариант. Любой результат проверяется: если это на самом деле
+// не перевод (сервисное сообщение, лимит, ошибка) — на сайт
+// такой текст не попадает, вместо него остаётся русский текст,
+// чтобы страница никогда не показала посетителю мусор.
 // ============================================================
 
 function avoraLooksUntranslated(original, translated) {
   if (!translated) return true;
   const t = translated.trim();
   if (!t) return true;
-  // MyMemory иногда отвечает служебным текстом при превышении лимита.
-  const errorPhrases = ["QUERY LENGTH LIMIT", "INVALID SOURCE LANGUAGE", "INVALID TARGET LANGUAGE", "IS AN INVALID"];
+
+  // Служебные сообщения об ошибках/лимитах от разных переводчиков —
+  // если хоть что-то из этого встретилось, перевод не засчитывается.
+  const errorPhrases = [
+    "QUERY LENGTH LIMIT",
+    "INVALID SOURCE LANGUAGE",
+    "INVALID TARGET LANGUAGE",
+    "IS AN INVALID",
+    "MYMEMORY WARNING",
+    "USED ALL AVAILABLE",
+    "USAGELIMITS",
+    "TRANSLATE MORE",
+    "NEXT AVAILABLE IN",
+  ];
   if (errorPhrases.some((p) => t.toUpperCase().includes(p))) return true;
-  // Если в "переводе" всё ещё остались кириллические буквы —
-  // значит перевод не удался (кроме случаев, когда исходник
-  // короткий и это, например, просто цифры/название на латинице).
+
+  // Если "перевод" стал заметно длиннее исходника — почти
+  // наверняка это служебное сообщение, а не текст.
+  if (t.length > original.length * 3 + 60) return true;
+
+  // Если в переводе всё ещё остались кириллические буквы и он
+  // совпадает с исходником — перевод не произошёл вообще.
   const hasCyrillic = /[а-яА-ЯёЁ]/.test(t);
   const originalHasCyrillic = /[а-яА-ЯёЁ]/.test(original);
   if (originalHasCyrillic && hasCyrillic && t === original.trim()) return true;
+
   return false;
 }
 
@@ -32,24 +48,44 @@ function avoraSleep(ms) {
   return new Promise((resolve) => setTimeout(resolve, ms));
 }
 
-async function avoraTranslateChunk(text) {
-  if (!text || !text.trim()) return { ok: true, text };
-  try {
-    const url = `https://api.mymemory.translated.net/get?q=${encodeURIComponent(text)}&langpair=ru|en`;
-    const res = await fetch(url);
-    const data = await res.json();
-    const translated = data?.responseData?.translatedText;
-    if (avoraLooksUntranslated(text, translated)) {
-      return { ok: false, text };
-    }
-    return { ok: true, text: translated };
-  } catch (e) {
-    return { ok: false, text };
-  }
+async function avoraTranslateViaGoogle(text) {
+  const url = `https://translate.googleapis.com/translate_a/single?client=gtx&sl=ru&tl=en&dt=t&q=${encodeURIComponent(text)}`;
+  const res = await fetch(url);
+  if (!res.ok) throw new Error("google translate http " + res.status);
+  const data = await res.json();
+  const translated = (data?.[0] || []).map((seg) => seg[0]).join("");
+  if (!translated) throw new Error("empty google response");
+  return translated;
 }
 
-// Разбивает длинный текст на куски по абзацам, не превышая
-// ~450 символов на запрос (ограничение бесплатного API).
+async function avoraTranslateViaMyMemory(text) {
+  const url = `https://api.mymemory.translated.net/get?q=${encodeURIComponent(text)}&langpair=ru|en`;
+  const res = await fetch(url);
+  const data = await res.json();
+  const translated = data?.responseData?.translatedText;
+  if (!translated) throw new Error("empty mymemory response");
+  return translated;
+}
+
+async function avoraTranslateChunk(text) {
+  if (!text || !text.trim()) return { ok: true, text };
+
+  // Пробуем Google, при неудаче — MyMemory как запасной вариант.
+  for (const translator of [avoraTranslateViaGoogle, avoraTranslateViaMyMemory]) {
+    try {
+      const translated = await translator(text);
+      if (!avoraLooksUntranslated(text, translated)) {
+        return { ok: true, text: translated };
+      }
+    } catch (e) {
+      // пробуем следующий движок
+    }
+  }
+  return { ok: false, text };
+}
+
+// Разбивает длинный текст на куски по абзацам, чтобы не
+// превышать разумную длину одного запроса.
 async function avoraTranslateRuToEn(text) {
   if (!text || !text.trim()) return { ok: true, text: "" };
   const lines = text.split("\n");
@@ -57,7 +93,7 @@ async function avoraTranslateRuToEn(text) {
   let current = "";
 
   for (const line of lines) {
-    if ((current + "\n" + line).length > 450) {
+    if ((current + "\n" + line).length > 1500) {
       chunks.push(current);
       current = line;
     } else {
@@ -72,7 +108,7 @@ async function avoraTranslateRuToEn(text) {
     const result = await avoraTranslateChunk(chunk);
     if (!result.ok) allOk = false;
     translatedChunks.push(result.text);
-    await avoraSleep(250); // не долбим бесплатный API слишком часто
+    await avoraSleep(150);
   }
   return { ok: allOk, text: translatedChunks.join("\n") };
 }
@@ -95,12 +131,19 @@ async function avoraAutoFillTranslations(pairs, statusEl) {
 
     if (statusEl) statusEl.textContent = "Перевод на английский…";
     const result = await avoraTranslateRuToEn(ruEl.value);
-    enEl.value = result.text;
-    if (!result.ok) anyFailed = true;
+    if (result.ok) {
+      enEl.value = result.text;
+    } else {
+      // Не перезаписываем поле мусором — оставляем как было,
+      // а если там ничего не было, подставляем русский текст,
+      // чтобы страница не осталась пустой.
+      if (!enEl.value.trim()) enEl.value = ruEl.value;
+      anyFailed = true;
+    }
   }
   if (statusEl) {
     statusEl.textContent = anyFailed
-      ? "Часть текста не удалось перевести автоматически (лимит сервиса) — проверьте английские поля вручную."
+      ? "Часть текста не удалось перевести автоматически — проверьте английские поля вручную или сохраните ещё раз позже."
       : "";
   }
   return anyFailed;

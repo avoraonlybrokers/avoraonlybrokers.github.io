@@ -46,7 +46,9 @@ const AMENITY_LABELS_RU = {
       <input class="form-field full" id="f-name-ru" placeholder="Название комплекса" required />
       <input class="form-field" id="f-country" placeholder="Страна" required />
       <input class="form-field" id="f-city" placeholder="Город" required />
-      <input class="form-field full" type="number" id="f-price" placeholder="Цена от, $" />
+      <input class="form-field" type="number" id="f-price" placeholder="Цена от, $" />
+      <input class="form-field" type="number" id="f-old-price" placeholder="Старая цена, $ (необязательно)" />
+      <input class="form-field full" type="number" id="f-discount" placeholder="Скидка, % (необязательно, например 10)" />
 
       <textarea class="form-field full" id="f-desc-ru" rows="5" placeholder="О проекте — подробное описание"></textarea>
       <textarea class="form-field" id="f-format-ru" rows="3" placeholder="Формат проекта (необязательно)"></textarea>
@@ -179,6 +181,8 @@ const AMENITY_LABELS_RU = {
     document.getElementById("f-country").value = c.country || "";
     document.getElementById("f-city").value = c.city || "";
     document.getElementById("f-price").value = c.price_from_usd ?? "";
+    document.getElementById("f-old-price").value = c.old_price_usd ?? "";
+    document.getElementById("f-discount").value = c.discount_percent ?? "";
     document.getElementById("f-desc-ru").value = c.description_ru || "";
     document.getElementById("f-desc-en").value = c.description_en || "";
     document.getElementById("f-format-ru").value = c.format_ru || "";
@@ -244,6 +248,8 @@ const AMENITY_LABELS_RU = {
       country: document.getElementById("f-country").value,
       city: document.getElementById("f-city").value,
       price_from_usd: Number(document.getElementById("f-price").value) || null,
+      old_price_usd: document.getElementById("f-old-price").value ? Number(document.getElementById("f-old-price").value) : null,
+      discount_percent: document.getElementById("f-discount").value ? Number(document.getElementById("f-discount").value) : null,
       description_ru: document.getElementById("f-desc-ru").value || null,
       description_en: document.getElementById("f-desc-en").value || null,
       format_ru: document.getElementById("f-format-ru").value || null,

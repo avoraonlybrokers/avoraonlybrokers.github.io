@@ -8,6 +8,18 @@ function avoraFormatArea(value) {
   return `${Number(value).toLocaleString("en-US")} m²`;
 }
 
+// Возвращает HTML бейджа "старая цена + скидка", либо "" если
+// оба поля пустые (тогда ничего не показываем).
+function avoraDiscountHTML(oldPrice, discountPercent) {
+  if (oldPrice == null && discountPercent == null) return "";
+  const oldPriceStr = oldPrice != null ? avoraFormatUsd(oldPrice) : null;
+  const pctStr = discountPercent != null ? `-${discountPercent}%` : null;
+  return `<div class="price-discount">
+    ${oldPriceStr ? `<span class="old-price">${avoraT("old_price_label")}: ${oldPriceStr}</span>` : ""}
+    ${pctStr ? `<span class="discount-pct"><i data-lucide="trending-down" width="11" height="11"></i>${pctStr}</span>` : ""}
+  </div>`;
+}
+
 function avoraProjectCardHTML(complex) {
   const name = avoraPick(complex, "name") || complex.name_en;
   const priceFrom = avoraFormatUsd(complex.price_from_usd);
@@ -20,6 +32,7 @@ function avoraProjectCardHTML(complex) {
           <div class="card-location"><i data-lucide="map-pin" width="13" height="13"></i><span>${avoraEscapeHtml(complex.city)}, ${avoraEscapeHtml(complex.country)}</span></div>
           <h3 class="card-title font-display">${avoraEscapeHtml(name)}</h3>
           ${priceFrom ? `<p class="card-price">${avoraT("listing_from")} ${priceFrom}</p>` : ""}
+          ${avoraDiscountHTML(complex.old_price_usd, complex.discount_percent)}
         </div>
       </div>
     </a>`;

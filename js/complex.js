@@ -77,7 +77,7 @@ function renderSummary(complex) {
     </div>
     <h1 class="font-display" style="font-size:40px;margin-top:8px">${avoraEscapeHtml(name)}</h1>
     <div style="display:flex;flex-wrap:wrap;gap:20px;margin-top:20px;font-size:14px">
-      ${priceFrom ? `<div><span style="color:rgba(247,247,245,0.5)" data-i18n="price_from"></span> <span style="color:var(--gold-soft)">${priceFrom}</span></div>` : ""}
+      ${priceFrom ? `<div><span style="color:rgba(247,247,245,0.5)" data-i18n="price_from"></span> <span style="color:var(--gold-soft)">${priceFrom}</span>${avoraDiscountHTML(complex.old_price_usd, complex.discount_percent)}</div>` : ""}
       ${complex.handover_date ? `<div style="display:flex;align-items:center;gap:6px;color:rgba(247,247,245,0.7)"><i data-lucide="calendar-clock" width="14" height="14"></i><span data-i18n="handover"></span>: ${avoraEscapeHtml(complex.handover_date)}</div>` : ""}
       ${yieldText ? `<div style="display:flex;align-items:center;gap:6px;color:rgba(247,247,245,0.7)"><i data-lucide="trending-up" width="14" height="14"></i><span data-i18n="yield"></span>: ${avoraEscapeHtml(yieldText)}</div>` : ""}
     </div>
@@ -120,7 +120,10 @@ async function loadApartments(complex) {
             </div>
           </div>
           <div class="apartment-row-right">
-            ${price ? `<span style="color:var(--gold-soft);font-size:14px">${price}</span>` : ""}
+            <div style="text-align:right">
+              ${price ? `<span style="color:var(--gold-soft);font-size:14px">${price}</span>` : ""}
+              ${avoraDiscountHTML(apt.old_price_usd, apt.discount_percent)}
+            </div>
             <i data-lucide="chevron-down" width="16" height="16" class="apartment-chevron" id="chevron-${apt.id}"></i>
           </div>
         </button>

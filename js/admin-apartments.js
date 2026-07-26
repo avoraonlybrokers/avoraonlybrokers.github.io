@@ -30,6 +30,8 @@
       <input class="form-field" type="number" id="f-bedrooms" placeholder="Спальни (0 = студия)" />
       <input class="form-field" type="number" step="any" id="f-area" placeholder="Площадь от, м²" />
       <input class="form-field" type="number" id="f-price" placeholder="Цена, $" />
+      <input class="form-field" type="number" id="f-old-price" placeholder="Старая цена, $ (необязательно)" />
+      <input class="form-field" type="number" id="f-discount" placeholder="Скидка, % (необязательно)" />
       <textarea class="form-field full" id="f-desc-ru" rows="3" placeholder="Описание (необязательно)"></textarea>
 
       <input class="form-field full" id="f-external-url" placeholder="Внешняя ссылка на страницу апартамента (если есть)" />
@@ -144,6 +146,8 @@
     document.getElementById("f-bedrooms").value = apt.bedrooms ?? "";
     document.getElementById("f-area").value = apt.area_from_sqm ?? "";
     document.getElementById("f-price").value = apt.price_usd ?? "";
+    document.getElementById("f-old-price").value = apt.old_price_usd ?? "";
+    document.getElementById("f-discount").value = apt.discount_percent ?? "";
     document.getElementById("f-desc-ru").value = apt.description_ru || "";
     document.getElementById("f-desc-en").value = apt.description_en || "";
     document.getElementById("f-external-url").value = apt.external_url || "";
@@ -188,6 +192,8 @@
       bedrooms: document.getElementById("f-bedrooms").value !== "" ? Number(document.getElementById("f-bedrooms").value) : null,
       area_from_sqm: document.getElementById("f-area").value ? Number(document.getElementById("f-area").value) : null,
       price_usd: document.getElementById("f-price").value ? Number(document.getElementById("f-price").value) : null,
+      old_price_usd: document.getElementById("f-old-price").value ? Number(document.getElementById("f-old-price").value) : null,
+      discount_percent: document.getElementById("f-discount").value ? Number(document.getElementById("f-discount").value) : null,
       description_ru: document.getElementById("f-desc-ru").value || null,
       description_en: document.getElementById("f-desc-en").value || null,
       external_url: document.getElementById("f-external-url").value || null,

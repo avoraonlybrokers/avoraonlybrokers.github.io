@@ -219,9 +219,18 @@ function avoraEscapeHtml(str) {
 // Считает визит один раз за сессию браузера (чтобы переходы между
 // страницами одного и того же человека не накручивали счётчик).
 // На admin-страницах не считаем.
-function avoraTrackVisit() {
+async function avoraTrackVisit() {
   if (document.getElementById("admin-shell")) return;
   if (sessionStorage.getItem("avora_visit_logged")) return;
+
+  try {
+    const { data } = await supabaseClient.auth.getUser();
+    const role = data?.user?.user_metadata?.role;
+    if (role === "admin") return; // не считаем визиты самого админа
+  } catch (e) {
+    // не авторизован / сессии нет — считаем как обычного посетителя
+  }
+
   sessionStorage.setItem("avora_visit_logged", "1");
   supabaseClient.from("site_visits").insert({ page: window.location.pathname }).then(() => {});
 }

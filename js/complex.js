@@ -47,12 +47,10 @@ async function avoraLoadComplex() {
 
   avoraRenderTrustBlock(document.getElementById("block-trust"), complex);
   avoraRenderMap(document.getElementById("block-map"), complex);
-  avoraRenderLeadForm(document.getElementById("block-lead"), {
-    complexId: complex.id,
-    developerLeadUrl: complex.developer_lead_url,
-  });
 
+  // ---- Загружаем апартаменты (вместе с кнопкой) ----
   await loadApartments(complex);
+
   avoraApplyTranslations();
   avoraRenderIcons();
   avoraInitReveal();
@@ -95,7 +93,8 @@ async function loadApartments(complex) {
   if (!apartments || apartments.length === 0) { block.classList.add("hidden"); return; }
   block.classList.remove("hidden");
 
-  document.getElementById("apartments-list").innerHTML = apartments
+  // Список апартаментов
+  let listHTML = apartments
     .map((apt) => {
       const name = avoraPick(apt, "name") || apt.name_en;
       const area = avoraFormatArea(apt.area_from_sqm);
@@ -120,6 +119,19 @@ async function loadApartments(complex) {
       </div>`;
     })
     .join("");
+
+  // Кнопка "Отправить заявку застройщику" — ПОСЛЕ списка апартаментов
+  const leadButtonHTML = complex.developer_lead_url
+    ? `
+      <div style="margin-top:24px;display:flex;justify-content:flex-start;">
+        <a href="${complex.developer_lead_url}" target="_blank" rel="noopener noreferrer" class="btn-gold" style="display:inline-flex;align-items:center;justify-content:center;gap:8px;text-decoration:none;padding:12px 28px;font-size:14px;width:auto;">
+          <span data-i18n="send_lead"></span> <i data-lucide="send" width="16" height="16"></i>
+        </a>
+      </div>
+    `
+    : "";
+
+  document.getElementById("apartments-list").innerHTML = listHTML + leadButtonHTML;
 
   avoraRenderIcons();
 

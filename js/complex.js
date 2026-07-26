@@ -130,7 +130,7 @@ async function loadApartments(complex) {
     })
     .join("");
 
-  // Кнопка "Отправить заявку застройщику" — компактная, как в старом файле
+  // Кнопка "Отправить заявку застройщику" — компактная
   const leadButtonHTML = complex.developer_lead_url
     ? `
       <div style="margin-top:24px;display:flex;justify-content:flex-start;">

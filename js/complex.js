@@ -102,14 +102,15 @@ async function loadApartments(complex) {
   }
   block.classList.remove("hidden");
 
-  document.getElementById("apartments-list").innerHTML = apartments
+  // Строим список апартаментов
+  let listHTML = apartments
     .map((apt) => {
       const name = avoraPick(apt, "name") || apt.name_en;
       const area = avoraFormatArea(apt.area_from_sqm);
       const price = avoraFormatUsd(apt.price_usd);
       const bedroomsLabel = apt.bedrooms != null ? `${apt.bedrooms} ${avoraT("bedrooms").toLowerCase()}` : "";
       return `
-      <div class="apartment-row">
+      <div class="apartment-row" data-apt-id="${apt.id}">
         <button type="button" class="apartment-row-header" data-toggle="${apt.id}">
           <div class="apartment-row-main">
             <i data-lucide="layers" width="16" height="16" style="color:var(--gold-soft)"></i>
@@ -128,33 +129,6 @@ async function loadApartments(complex) {
     })
     .join("");
 
-  avoraRenderIcons();
-
-  document.querySelectorAll("[data-toggle]").forEach((btn) => {
-    btn.addEventListener("click", async () => {
-      const id = btn.dataset.toggle;
-      const panel = document.getElementById(`panel-${id}`);
-      const chevron = document.getElementById(`chevron-${id}`);
-      const isOpen = panel.classList.contains("open");
-
-      if (isOpen) {
-        panel.style.maxHeight = "0px";
-        panel.classList.remove("open");
-        chevron.classList.remove("open");
-        return;
-      }
-
-      if (panel.dataset.loaded === "0") {
-        await renderApartmentPanel(panel, apartments.find((a) => a.id === id));
-        panel.dataset.loaded = "1";
-      }
-
-      panel.classList.add("open");
-      chevron.classList.add("open");
-      panel.style.maxHeight = panel.scrollHeight + 40 + "px";
-    });
-  });
-
   // Кнопка "Отправить заявку застройщику" — ПОСЛЕ списка апартаментов
   const leadButtonHTML = complex.developer_lead_url
     ? `
@@ -171,14 +145,58 @@ async function loadApartments(complex) {
     `
     : "";
 
-  const listEl = document.getElementById("apartments-list");
-  listEl.innerHTML = listEl.innerHTML + leadButtonHTML;
+  document.getElementById("apartments-list").innerHTML = listHTML + leadButtonHTML;
+
+  avoraRenderIcons();
+
+  // ---- Обработчики кликов ----
+  document.querySelectorAll("[data-toggle]").forEach((btn) => {
+    btn.addEventListener("click", async function(e) {
+      e.stopPropagation();
+      const id = this.dataset.toggle;
+      const panel = document.getElementById(`panel-${id}`);
+      const chevron = document.getElementById(`chevron-${id}`);
+      const isOpen = panel.classList.contains("open");
+
+      if (isOpen) {
+        panel.style.maxHeight = "0px";
+        panel.classList.remove("open");
+        chevron.classList.remove("open");
+        return;
+      }
+
+      // Закрываем все остальные
+      document.querySelectorAll(".apartment-row-panel.open").forEach((p) => {
+        if (p.id !== `panel-${id}`) {
+          p.style.maxHeight = "0px";
+          p.classList.remove("open");
+          const otherChevron = document.getElementById(`chevron-${p.id.replace("panel-", "")}`);
+          if (otherChevron) otherChevron.classList.remove("open");
+        }
+      });
+
+      // Загружаем данные, если ещё не загружены
+      if (panel.dataset.loaded === "0") {
+        await renderApartmentPanel(panel, apartments.find((a) => a.id === id));
+        panel.dataset.loaded = "1";
+      }
+
+      panel.classList.add("open");
+      chevron.classList.add("open");
+      panel.style.maxHeight = panel.scrollHeight + 40 + "px";
+    });
+  });
 }
 
 // ============================================================
 // Рендер панели с фото (БЕЗ ОПИСАНИЯ)
 // ============================================================
 async function renderApartmentPanel(panel, apt) {
+  if (!apt) {
+    panel.innerHTML = `<p class="apt-panel-empty">Ошибка: апартамент не найден.</p>`;
+    return;
+  }
+
   const { data: media } = await supabaseClient
     .from("media")
     .select("*")
@@ -201,15 +219,21 @@ async function renderApartmentPanel(panel, apt) {
 
   panel.innerHTML = html;
 
+  // Подключаем клики по миниатюрам
   panel.querySelectorAll("[data-photo-index]").forEach((thumb) => {
-    thumb.addEventListener("click", () => {
+    thumb.addEventListener("click", function() {
+      const index = Number(this.dataset.photoIndex);
       avoraOpenLightbox(
         photos.map((m) => ({ kind: "image", url: m.url })),
-        "",
-        Number(thumb.dataset.photoIndex)
+        apt.name_en || "",
+        index
       );
     });
   });
+
+  // Обновляем иконки и переводы
+  if (typeof avoraRenderIcons === "function") avoraRenderIcons();
+  if (typeof avoraApplyTranslations === "function") avoraApplyTranslations();
 }
 
 document.addEventListener("DOMContentLoaded", () => {

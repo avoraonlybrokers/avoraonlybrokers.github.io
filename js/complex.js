@@ -45,15 +45,14 @@ async function avoraLoadComplex() {
     avoraRenderAmenities(amenitiesBlock, complex.amenities);
   }
 
-  // ---- Загружаем апартаменты (вместе с кнопкой внутри) ----
-  await loadApartments(complex);
-
-  // ---- Trust блок ----
   avoraRenderTrustBlock(document.getElementById("block-trust"), complex);
-
-  // ---- Карта ----
   avoraRenderMap(document.getElementById("block-map"), complex);
+  avoraRenderLeadForm(document.getElementById("block-lead"), {
+    complexId: complex.id,
+    developerLeadUrl: complex.developer_lead_url,
+  });
 
+  await loadApartments(complex);
   avoraApplyTranslations();
   avoraRenderIcons();
   avoraInitReveal();
@@ -84,10 +83,6 @@ function renderSummary(complex) {
   `;
 }
 
-// ============================================================
-// Апартаменты + кнопка "Отправить заявку застройщику"
-// Кнопка — ПОСЛЕ списка апартаментов, компактная
-// ============================================================
 async function loadApartments(complex) {
   const { data: apartments } = await supabaseClient
     .from("apartments")
@@ -97,59 +92,103 @@ async function loadApartments(complex) {
     .order("sort_order", { ascending: true });
 
   const block = document.getElementById("block-apartments");
-  if (!apartments || apartments.length === 0) {
-    block.classList.add("hidden");
-    return;
-  }
+  if (!apartments || apartments.length === 0) { block.classList.add("hidden"); return; }
   block.classList.remove("hidden");
 
-  let listHTML = apartments
+  document.getElementById("apartments-list").innerHTML = apartments
     .map((apt) => {
       const name = avoraPick(apt, "name") || apt.name_en;
       const area = avoraFormatArea(apt.area_from_sqm);
       const price = avoraFormatUsd(apt.price_usd);
-      const bedroomsLabel =
-        apt.bedrooms != null
-          ? `${apt.bedrooms} ${avoraT("bedrooms").toLowerCase()}`
-          : "";
-
+      const bedroomsLabel = apt.bedrooms != null ? `${apt.bedrooms} ${avoraT("bedrooms").toLowerCase()}` : "";
       return `
-        <div style="display:flex;align-items:center;justify-content:space-between;border:1px solid var(--line);border-radius:12px;padding:16px 20px;margin-bottom:10px;cursor:default;">
-          <div style="display:flex;align-items:center;gap:12px">
+      <div class="apartment-row">
+        <button type="button" class="apartment-row-header" data-toggle="${apt.id}">
+          <div class="apartment-row-main">
             <i data-lucide="layers" width="16" height="16" style="color:var(--gold-soft)"></i>
             <div>
               <p>${avoraEscapeHtml(name)}</p>
-              <p style="font-size:12px;color:rgba(247,247,245,0.5)">
-                ${[area ? `${avoraT("listing_from")} ${area}` : "", bedroomsLabel].filter(Boolean).join(" · ")}
-              </p>
+              <p style="font-size:12px;color:rgba(247,247,245,0.5)">${[area ? `${avoraT("listing_from")} ${area}` : "", bedroomsLabel].filter(Boolean).join(" · ")}</p>
             </div>
           </div>
-          ${price ? `<span style="color:var(--gold-soft);font-size:14px">${price}</span>` : ""}
-        </div>
-      `;
+          <div class="apartment-row-right">
+            ${price ? `<span style="color:var(--gold-soft);font-size:14px">${price}</span>` : ""}
+            <i data-lucide="chevron-down" width="16" height="16" class="apartment-chevron" id="chevron-${apt.id}"></i>
+          </div>
+        </button>
+        <div class="apartment-row-panel" id="panel-${apt.id}" data-loaded="0"></div>
+      </div>`;
     })
     .join("");
 
-  // Кнопка "Отправить заявку застройщику" — компактная
-  const leadButtonHTML = complex.developer_lead_url
-    ? `
-      <div style="margin-top:24px;display:flex;justify-content:flex-start;">
-        <a href="${complex.developer_lead_url}" target="_blank" rel="noopener noreferrer" 
-           style="display:inline-flex;align-items:center;justify-content:center;gap:8px;
-                  background:var(--gold);color:var(--ink);padding:10px 24px;
-                  border-radius:999px;font-size:13px;font-weight:600;letter-spacing:0.3px;
-                  text-decoration:none;text-transform:uppercase;white-space:nowrap;
-                  transition:background 0.2s;border:none;cursor:pointer;">
-          <span data-i18n="send_lead"></span> <i data-lucide="send" width="14" height="14" style="flex-shrink:0;"></i>
-        </a>
-      </div>
-    `
-    : "";
-
-  document.getElementById("apartments-list").innerHTML = listHTML + leadButtonHTML;
-
   avoraRenderIcons();
-  avoraApplyTranslations();
+
+  document.querySelectorAll("[data-toggle]").forEach((btn) => {
+    btn.addEventListener("click", async () => {
+      const id = btn.dataset.toggle;
+      const panel = document.getElementById(`panel-${id}`);
+      const chevron = document.getElementById(`chevron-${id}`);
+      const isOpen = panel.classList.contains("open");
+
+      if (isOpen) {
+        panel.style.maxHeight = "0px";
+        panel.classList.remove("open");
+        chevron.classList.remove("open");
+        return;
+      }
+
+      if (panel.dataset.loaded === "0") {
+        await renderApartmentPanel(panel, apartments.find((a) => a.id === id));
+        panel.dataset.loaded = "1";
+      }
+
+      panel.classList.add("open");
+      chevron.classList.add("open");
+      panel.style.maxHeight = panel.scrollHeight + 40 + "px";
+    });
+  });
+}
+
+async function renderApartmentPanel(panel, apt) {
+  const description = avoraPick(apt, "description");
+  const { data: media } = await supabaseClient
+    .from("media")
+    .select("*")
+    .eq("owner_type", "apartment")
+    .eq("owner_id", apt.id)
+    .eq("kind", "image")
+    .order("sort_order", { ascending: true });
+
+  const photos = media || [];
+
+  let html = "";
+  if (description) {
+    html += `<div class="guide-content" style="margin-top:12px">${description
+      .split("\n")
+      .filter((l) => l.trim())
+      .map((l) => (l.trim().startsWith("- ") ? `<p>${avoraEscapeHtml(l.trim().slice(2))}</p>` : `<p>${avoraEscapeHtml(l.trim())}</p>`))
+      .join("")}</div>`;
+  }
+
+  if (photos.length > 0) {
+    html += `<div class="apt-thumb-grid">${photos
+      .map((m, i) => `<div class="apt-thumb" data-photo-index="${i}"><img src="${m.url}" loading="lazy" /></div>`)
+      .join("")}</div>`;
+  } else if (!description) {
+    html += `<p class="apt-panel-empty">Фото пока не добавлены.</p>`;
+  }
+
+  panel.innerHTML = html;
+
+  panel.querySelectorAll("[data-photo-index]").forEach((thumb) => {
+    thumb.addEventListener("click", () => {
+      avoraOpenLightbox(
+        photos.map((m) => ({ kind: "image", url: m.url })),
+        "",
+        Number(thumb.dataset.photoIndex)
+      );
+    });
+  });
 }
 
 document.addEventListener("DOMContentLoaded", () => {

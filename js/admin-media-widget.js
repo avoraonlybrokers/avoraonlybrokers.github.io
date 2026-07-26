@@ -1,13 +1,19 @@
 // ============================================================
 // AVORA — виджет управления фото/видео.
 // Можно вставить в любой контейнер: avoraRenderMediaManager(el, 'complex', id)
+// Лимиты зависят от owner_type: у комплекса больше фото, чем
+// у отдельного формата апартамента (там обычно только чертежи).
 // ============================================================
 
 function avoraRenderMediaManager(container, ownerType, ownerId) {
+  const PHOTO_LIMIT = ownerType === "apartment" ? 10 : 30;
+  const VIDEO_LIMIT = ownerType === "apartment" ? 4 : 8;
+  const photoHint = ownerType === "apartment" ? "Например, чертежи и планировки." : "Показываются в галерее на странице комплекса (не путать с главной обложкой выше — она задаётся отдельным полем).";
+
   container.innerHTML = `
     <div style="border:1px solid var(--line);border-radius:14px;padding:24px;margin-top:12px">
       <h3 style="font-size:16px;margin-bottom:4px">Дополнительные фотографии <span id="photo-count" class="meta"></span></h3>
-      <p style="font-size:12px;color:rgba(247,247,245,0.45);margin-bottom:12px">Показываются в галерее на странице комплекса (не путать с главной обложкой выше — она задаётся отдельным полем). До 15 штук.</p>
+      <p style="font-size:12px;color:rgba(247,247,245,0.45);margin-bottom:12px">${photoHint} До ${PHOTO_LIMIT} штук.</p>
       <div style="display:flex;gap:8px;align-items:center;margin-bottom:8px">
         <button type="button" id="photo-upload-btn" class="btn-outline-gold" style="width:auto;padding:10px 20px">Загрузить фото</button>
         <input type="file" id="photo-upload-input" accept="image/*" multiple class="hidden" />
@@ -18,7 +24,7 @@ function avoraRenderMediaManager(container, ownerType, ownerId) {
 
     <div style="border:1px solid var(--line);border-radius:14px;padding:24px;margin-top:16px">
       <h3 style="font-size:16px;margin-bottom:4px">Видео <span id="video-count" class="meta"></span></h3>
-      <p style="font-size:12px;color:rgba(247,247,245,0.45);margin-bottom:12px">До 8 видео.</p>
+      <p style="font-size:12px;color:rgba(247,247,245,0.45);margin-bottom:12px">До ${VIDEO_LIMIT} видео.</p>
       <div style="display:flex;gap:8px;align-items:center;margin-bottom:8px">
         <button type="button" id="video-upload-btn" class="btn-outline-gold" style="width:auto;padding:10px 20px">Загрузить видео</button>
         <input type="file" id="video-upload-input" accept="video/*" multiple class="hidden" />
@@ -40,8 +46,8 @@ function avoraRenderMediaManager(container, ownerType, ownerId) {
     const photos = (data || []).filter((m) => m.kind === "image");
     const videos = (data || []).filter((m) => m.kind === "video");
 
-    container.querySelector("#photo-count").textContent = `(${photos.length}/15)`;
-    container.querySelector("#video-count").textContent = `(${videos.length}/8)`;
+    container.querySelector("#photo-count").textContent = `(${photos.length}/${PHOTO_LIMIT})`;
+    container.querySelector("#video-count").textContent = `(${videos.length}/${VIDEO_LIMIT})`;
 
     container.querySelector("#photo-grid").innerHTML = photos
       .map(
@@ -102,8 +108,8 @@ function avoraRenderMediaManager(container, ownerType, ownerId) {
     });
   }
 
-  wireUploader("photo-upload-btn", "photo-upload-input", "photo-upload-status", "image", "media/photos", 15, async () => (await loadMedia()).photoCount);
-  wireUploader("video-upload-btn", "video-upload-input", "video-upload-status", "video", "media/videos", 8, async () => (await loadMedia()).videoCount);
+  wireUploader("photo-upload-btn", "photo-upload-input", "photo-upload-status", "image", "media/photos", PHOTO_LIMIT, async () => (await loadMedia()).photoCount);
+  wireUploader("video-upload-btn", "video-upload-input", "video-upload-status", "video", "media/videos", VIDEO_LIMIT, async () => (await loadMedia()).videoCount);
 
   loadMedia();
 }

@@ -150,9 +150,9 @@ function avoraRenderAmenities(container, amenities) {
 }
 
 // items: [{ kind: 'image'|'video', url }]
-function avoraRenderCarousel(container, items, title) {
+function avoraRenderCarousel(container, items, title, startIndex) {
   if (!items || items.length === 0) { container.classList.add("hidden"); return; }
-  let index = 0;
+  let index = startIndex && startIndex > 0 && startIndex < items.length ? startIndex : 0;
 
   container.innerHTML = `
     <div class="carousel-track" id="carousel-track"></div>
@@ -160,7 +160,7 @@ function avoraRenderCarousel(container, items, title) {
     ${items.length > 1 ? `
     <button class="carousel-arrow prev" aria-label="Previous"><i data-lucide="chevron-left" width="18" height="18"></i></button>
     <button class="carousel-arrow next" aria-label="Next"><i data-lucide="chevron-right" width="18" height="18"></i></button>
-    <div class="carousel-dots">${items.map((_, i) => `<button data-i="${i}" class="${i === 0 ? "active" : ""}"></button>`).join("")}</div>
+    <div class="carousel-dots">${items.map((_, i) => `<button data-i="${i}" class="${i === index ? "active" : ""}"></button>`).join("")}</div>
     ` : ""}
   `;
 
@@ -199,6 +199,34 @@ function avoraRenderCarousel(container, items, title) {
 
   render();
   avoraRenderIcons();
+}
+
+// Полноэкранный просмотр фото/видео (используется для чертежей
+// апартаментов и вообще везде, где нужно открыть галерею поверх
+// страницы). Создаёт оверлей один раз и переиспользует его.
+function avoraOpenLightbox(items, title, startIndex) {
+  let overlay = document.getElementById("avora-lightbox");
+  if (!overlay) {
+    overlay = document.createElement("div");
+    overlay.id = "avora-lightbox";
+    overlay.className = "lightbox-overlay";
+    overlay.innerHTML = `
+      <div class="lightbox-content">
+        <button class="lightbox-close" aria-label="Close"><i data-lucide="x" width="18" height="18"></i></button>
+        <div class="carousel" id="lightbox-carousel"></div>
+      </div>`;
+    document.body.appendChild(overlay);
+
+    overlay.querySelector(".lightbox-close").addEventListener("click", () => overlay.classList.remove("open"));
+    overlay.addEventListener("click", (e) => { if (e.target === overlay) overlay.classList.remove("open"); });
+    document.addEventListener("keydown", (e) => { if (e.key === "Escape") overlay.classList.remove("open"); });
+  }
+
+  const carouselEl = overlay.querySelector("#lightbox-carousel");
+  carouselEl.classList.remove("hidden");
+  avoraRenderCarousel(carouselEl, items, title || "", startIndex || 0);
+  avoraRenderIcons();
+  overlay.classList.add("open");
 }
 
 function avoraRenderTrustBlock(container, complex) {
@@ -258,8 +286,8 @@ function avoraRenderLeadForm(container, { developerLeadUrl }) {
     return;
   }
   container.innerHTML = `
-    <a href="${developerLeadUrl}" target="_blank" rel="noopener noreferrer" class="btn-gold" style="display:inline-flex;align-items:center;justify-content:center;gap:8px;text-decoration:none;width:auto;padding:12px 28px;font-size:16px;margin-top:8px;">
-      <span data-i18n="send_lead"></span> <i data-lucide="send" width="16" height="16"></i>
+    <a href="${developerLeadUrl}" target="_blank" rel="noopener noreferrer" class="btn-gold" style="display:inline-flex;align-items:center;justify-content:center;gap:8px;text-decoration:none">
+      <span data-i18n="send_lead"></span> <i data-lucide="send" width="15" height="15"></i>
     </a>`;
   avoraApplyTranslations();
   avoraRenderIcons();

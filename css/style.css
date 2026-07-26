@@ -448,6 +448,15 @@ section.block:first-child { border-top: none; }
 .card-title { font-size: 24px; }
 .card-price { margin-top: 4px; font-size: 14px; color: var(--gold-soft); }
 
+/* ---------------- Price discount badge ---------------- */
+.price-discount { display: flex; align-items: center; gap: 8px; margin-top: 3px; flex-wrap: wrap; }
+.old-price { font-size: 11px; color: rgba(247,247,245,0.4); text-decoration: line-through; }
+.discount-pct {
+  display: inline-flex; align-items: center; gap: 3px;
+  font-size: 11px; font-weight: 600; color: #34d399;
+  background: rgba(52,211,153,0.12); padding: 2px 8px; border-radius: 999px;
+}
+
 /* ---------------- Amenities ---------------- */
 .amenity-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 16px; margin-top: 20px; }
 @media (min-width: 640px) { .amenity-grid { grid-template-columns: 1fr 1fr 1fr; } }

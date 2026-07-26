@@ -45,14 +45,15 @@ async function avoraLoadComplex() {
     avoraRenderAmenities(amenitiesBlock, complex.amenities);
   }
 
-  avoraRenderTrustBlock(document.getElementById("block-trust"), complex);
-  avoraRenderMap(document.getElementById("block-map"), complex);
-  avoraRenderLeadForm(document.getElementById("block-lead"), {
-    complexId: complex.id,
-    developerLeadUrl: complex.developer_lead_url,
-  });
-
+  // ---- Загружаем апартаменты (вместе с кнопкой внутри) ----
   await loadApartments(complex);
+
+  // ---- Trust блок ----
+  avoraRenderTrustBlock(document.getElementById("block-trust"), complex);
+
+  // ---- Карта ----
+  avoraRenderMap(document.getElementById("block-map"), complex);
+
   avoraApplyTranslations();
   avoraRenderIcons();
   avoraInitReveal();
@@ -83,6 +84,9 @@ function renderSummary(complex) {
   `;
 }
 
+// ============================================================
+// Апартаменты с раскрывающейся панелью (только фото)
+// ============================================================
 async function loadApartments(complex) {
   const { data: apartments } = await supabaseClient
     .from("apartments")
@@ -92,7 +96,10 @@ async function loadApartments(complex) {
     .order("sort_order", { ascending: true });
 
   const block = document.getElementById("block-apartments");
-  if (!apartments || apartments.length === 0) { block.classList.add("hidden"); return; }
+  if (!apartments || apartments.length === 0) {
+    block.classList.add("hidden");
+    return;
+  }
   block.classList.remove("hidden");
 
   document.getElementById("apartments-list").innerHTML = apartments
@@ -147,10 +154,31 @@ async function loadApartments(complex) {
       panel.style.maxHeight = panel.scrollHeight + 40 + "px";
     });
   });
+
+  // Кнопка "Отправить заявку застройщику" — ПОСЛЕ списка апартаментов
+  const leadButtonHTML = complex.developer_lead_url
+    ? `
+      <div style="margin-top:24px;display:flex;justify-content:flex-start;">
+        <a href="${complex.developer_lead_url}" target="_blank" rel="noopener noreferrer" 
+           style="display:inline-flex;align-items:center;justify-content:center;gap:8px;
+                  background:var(--gold);color:var(--ink);padding:10px 24px;
+                  border-radius:999px;font-size:13px;font-weight:600;letter-spacing:0.3px;
+                  text-decoration:none;text-transform:uppercase;white-space:nowrap;
+                  transition:background 0.2s;border:none;cursor:pointer;">
+          <span data-i18n="send_lead"></span> <i data-lucide="send" width="14" height="14" style="flex-shrink:0;"></i>
+        </a>
+      </div>
+    `
+    : "";
+
+  const listEl = document.getElementById("apartments-list");
+  listEl.innerHTML = listEl.innerHTML + leadButtonHTML;
 }
 
+// ============================================================
+// Рендер панели с фото (БЕЗ ОПИСАНИЯ)
+// ============================================================
 async function renderApartmentPanel(panel, apt) {
-  const description = avoraPick(apt, "description");
   const { data: media } = await supabaseClient
     .from("media")
     .select("*")
@@ -162,19 +190,12 @@ async function renderApartmentPanel(panel, apt) {
   const photos = media || [];
 
   let html = "";
-  if (description) {
-    html += `<div class="guide-content" style="margin-top:12px">${description
-      .split("\n")
-      .filter((l) => l.trim())
-      .map((l) => (l.trim().startsWith("- ") ? `<p>${avoraEscapeHtml(l.trim().slice(2))}</p>` : `<p>${avoraEscapeHtml(l.trim())}</p>`))
-      .join("")}</div>`;
-  }
 
   if (photos.length > 0) {
     html += `<div class="apt-thumb-grid">${photos
       .map((m, i) => `<div class="apt-thumb" data-photo-index="${i}"><img src="${m.url}" loading="lazy" /></div>`)
       .join("")}</div>`;
-  } else if (!description) {
+  } else {
     html += `<p class="apt-panel-empty">Фото пока не добавлены.</p>`;
   }
 
